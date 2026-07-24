@@ -1,0 +1,35 @@
+import { BusFront, Calculator, Clock3, Coffee, Home, Moon, PiggyBank, ReceiptText, Sun, WalletCards } from "lucide-react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import LoginRequired from "../components/LoginRequired";
+import { useAuth } from "../context/AuthContext";
+import { REGION_RECOMMENDATIONS } from "../data/mockData";
+import type { SimulationType } from "../types";
+
+const INFO = {
+  commute: { title: "출퇴근 시뮬레이션", icon: BusFront, description: "선택 지역에서 직장까지의 이동 시간과 교통비를 계산합니다." },
+  budget: { title: "생활비 계산하기", icon: Calculator, description: "주거비와 고정 지출을 반영해 한 달 생활비를 계산합니다." },
+  cost: { title: "하루 생활 시뮬레이션", icon: WalletCards, description: "충북에서 보내는 평범한 하루를 시간대별로 미리 경험합니다." },
+  spending: { title: "지출 확인하기", icon: ReceiptText, description: "예상 소득과 지출을 비교해 저축 가능 금액을 확인합니다." },
+};
+
+export function SimulationHubPage() {
+  const { isLoggedIn } = useAuth();
+  const location = useLocation();
+  const selected = ((location.state as { selected?: SimulationType[] } | null)?.selected || Object.keys(INFO)) as SimulationType[];
+  if (!isLoggedIn) return <LoginRequired />;
+  return <main className="mx-auto max-w-[1140px] px-6 py-9">
+    <div className="flex flex-wrap items-end justify-between gap-4"><div><span className="text-xs font-bold text-brand">SETTLEMENT SIMULATION</span><h1 className="mt-2 text-3xl font-bold">정착 시뮬레이션</h1><p className="mt-2 text-sm text-stone-500">선택한 항목을 게임처럼 하나씩 진행하며 충북 생활을 미리 경험해보세요.</p></div><Link to="/" className="rounded-lg border border-brand px-5 py-2.5 text-xs font-bold text-brand">항목 다시 선택</Link></div>
+    <section className="relative mt-7 h-[270px] overflow-hidden rounded-2xl"><img src={REGION_RECOMMENDATIONS[0].image} alt="청주 지역 시뮬레이션 배경" className="h-full w-full object-cover"/><div className="absolute inset-0 bg-gradient-to-r from-emerald-950/85 to-emerald-900/30"/><div className="absolute inset-0 flex items-center p-9 text-white"><div><span className="rounded-full bg-white/15 px-3 py-1 text-[10px]">현재 플레이 지역</span><h2 className="mt-4 text-3xl font-bold">청주시 오창읍에서<br/>새로운 하루 시작하기</h2><p className="mt-3 text-xs text-white/70">각 미션을 완료하면 예상 생활비와 정착 적합도가 계산됩니다.</p></div><div className="ml-auto hidden grid-cols-3 gap-3 md:grid">{[["집","07:30"],["회사","08:40"],["공원","19:20"]].map(([place,time])=><div key={place} className="flex h-24 w-24 flex-col items-center justify-center rounded-2xl border border-white/30 bg-white/15 backdrop-blur"><b className="text-sm">{place}</b><span className="mt-1 text-[10px] text-white/70">{time}</span></div>)}</div></div></section>
+    <div className="mt-7 grid gap-4 md:grid-cols-2">{selected.map((type,index)=>{const item=INFO[type];const ItemIcon=item.icon;return <Link to={`/simulation/${type}`} key={type} className="group flex items-center gap-5 rounded-2xl border border-stone-200 bg-white p-6 transition hover:border-brand hover:shadow-card"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-brand"><ItemIcon size={25}/></span><div><span className="text-[10px] font-bold text-brand">MISSION {index+1}</span><h2 className="mt-1 text-lg font-bold">{item.title}</h2><p className="mt-1 text-xs text-stone-400">{item.description}</p></div><span className="ml-auto text-xl text-stone-300 group-hover:text-brand">→</span></Link>})}</div>
+  </main>;
+}
+
+export default function SimulationPage() {
+  const { isLoggedIn, profile } = useAuth();
+  const { type = "cost" } = useParams();
+  if (!isLoggedIn) return <LoginRequired />;
+  const info = INFO[type as keyof typeof INFO] || INFO.cost;
+  const Icon = info.icon;
+  const timeline = [["07:30",Sun,"기상","청주시 오창읍 주거지"],["08:10",BusFront,"집에서 출발","자가용 기준 이동"],["08:40",Clock3,"회사 도착","예상 이동 30분"],["12:00",Coffee,"점심 식사","구내식당 또는 인근 상권"],["18:00",Home,"퇴근","장보기 후 귀가"],["21:00",Moon,"여가·휴식","호수공원 산책 또는 문화시설"]];
+  return <main className="mx-auto max-w-[1100px] px-6 py-9"><div className="flex items-center gap-4"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white"><Icon size={27}/></span><div><h1 className="text-2xl font-bold">{info.title}</h1><p className="mt-1 text-sm text-stone-500">{info.description}</p></div></div><div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-5">{[["선택 지역","청주시 오창읍"],["직업",profile.job],["예상 연봉",profile.salary],["월세",profile.rent],["이동수단",profile.transport]].map(([label,value])=><div key={label} className="rounded-xl border border-stone-200 bg-white p-4"><span className="text-[10px] text-stone-400">{label}</span><b className="mt-1 block text-xs">{value}</b></div>)}</div><section className="mt-6 grid gap-5 lg:grid-cols-[1.3fr_.7fr]"><div className="rounded-2xl border border-stone-200 bg-white p-7"><h2 className="text-lg font-bold">나의 하루</h2><div className="mt-6 space-y-1">{timeline.map(([time,TimelineIcon,title,desc])=><div key={String(time)} className="grid grid-cols-[55px_34px_1fr] items-center gap-3"><b className="text-xs text-brand">{String(time)}</b><span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-light text-brand"><TimelineIcon size={15}/></span><div className="border-b border-stone-100 py-3"><p className="text-sm font-bold">{String(title)}</p><p className="text-[11px] text-stone-400">{String(desc)}</p></div></div>)}</div></div><div className="space-y-4"><div className="rounded-2xl border border-stone-200 bg-white p-6"><PiggyBank className="text-brand"/><p className="mt-4 text-xs text-stone-400">월 예상 생활비</p><strong className="text-3xl text-brand">214만원</strong><div className="mt-4 h-2 rounded-full bg-stone-100"><div className="h-full w-[72%] rounded-full bg-brand"/></div></div><div className="rounded-2xl bg-brand p-6 text-white"><p className="text-xs text-white/70">월 예상 저축 가능액</p><strong className="mt-2 block text-3xl">+74만원</strong><p className="mt-3 text-[11px] text-white/70">입력한 소득과 예상 지출 기준</p></div></div></section><section className="mt-7"><div className="flex items-end justify-between"><div><h2 className="text-xl font-bold">오늘의 그림일기</h2><p className="mt-1 text-xs text-stone-400">사진과 함께 미리 보는 충북에서의 하루예요.</p></div><span className="text-xs font-bold text-brand">DAY 1 · 청주</span></div><div className="mt-4 grid gap-4 md:grid-cols-3">{[[REGION_RECOMMENDATIONS[0].image,"08:40","출근길","오창 산업단지까지 30분. 아침 교통은 여유로운 편이었어요."],[REGION_RECOMMENDATIONS[3].image,"18:40","퇴근 후 산책","퇴근 후에는 가까운 공원에서 천천히 하루를 정리해요."],[REGION_RECOMMENDATIONS[1].image,"20:10","주말 계획","주말에는 충북 곳곳의 자연과 지역 명소를 찾아가 보기로 했어요."]].map(([image,time,title,diary],index)=><article key={String(title)} className={`overflow-hidden rounded-2xl border border-stone-200 bg-white ${index===1?"md:-rotate-1":"md:rotate-[.5deg]"}`}><img src={String(image)} alt={String(title)} className="h-40 w-full object-cover"/><div className="p-5"><span className="font-serif text-[11px] font-bold text-brand">{String(time)}</span><h3 className="mt-2 font-serif text-lg font-bold">{String(title)}</h3><p className="mt-3 font-serif text-xs leading-6 text-stone-500">{String(diary)}</p><div className="mt-4 border-t border-dashed border-stone-200 pt-3 text-right text-lg">☀️ 🌿</div></div></article>)}</div></section></main>;
+}
