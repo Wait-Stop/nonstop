@@ -4,6 +4,7 @@ import { LoginPage, SignupPage } from "./pages/AuthPages";
 import { RegionComparePage, RegionsPage } from "./pages/ExplorePages";
 import HomePage from "./pages/HomePage";
 import { RecommendationsPage, RegionDetailPage } from "./pages/RecommendationPages";
+import SimulationPage, { SimulationHubPage } from "./pages/SimulationPage";
 
 export default function App() {
   return <Routes>
@@ -15,6 +16,8 @@ export default function App() {
       <Route path="/regions" element={<RegionsPage />} />
       <Route path="/regions/compare" element={<RegionComparePage />} />
       <Route path="/regions/:id" element={<RegionDetailPage />} />
+      <Route path="/simulation" element={<SimulationHubPage />} />
+      <Route path="/simulation/:type" element={<SimulationPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Route>
   </Routes>;
