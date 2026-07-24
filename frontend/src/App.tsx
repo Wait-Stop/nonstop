@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import { LoginPage, SignupPage } from "./pages/AuthPages";
 import { RegionComparePage, RegionsPage } from "./pages/ExplorePages";
 import HomePage from "./pages/HomePage";
+import { MyPage, ProfileEditPage, SavedItemsPage } from "./pages/MyPage";
 import { PoliciesPage, PolicyDetailPage } from "./pages/PolicyPages";
 import { RecommendationsPage, RegionDetailPage } from "./pages/RecommendationPages";
 import SimulationPage, { SimulationHubPage } from "./pages/SimulationPage";
@@ -21,6 +22,9 @@ export default function App() {
       <Route path="/simulation/:type" element={<SimulationPage />} />
       <Route path="/policies" element={<PoliciesPage />} />
       <Route path="/policies/:id" element={<PolicyDetailPage />} />
+      <Route path="/mypage" element={<MyPage />} />
+      <Route path="/mypage/saved" element={<SavedItemsPage />} />
+      <Route path="/mypage/profile" element={<ProfileEditPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Route>
   </Routes>;
