@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { LoginPage, SignupPage } from "./pages/AuthPages";
-import { RegionComparePage, RegionsPage } from "./pages/ExplorePages";
+import { CommunityPage, RegionComparePage, RegionsPage } from "./pages/ExplorePages";
 import HomePage from "./pages/HomePage";
 import { MyPage, ProfileEditPage, SavedItemsPage } from "./pages/MyPage";
 import { PoliciesPage, PolicyDetailPage } from "./pages/PolicyPages";
@@ -25,6 +25,7 @@ export default function App() {
       <Route path="/mypage" element={<MyPage />} />
       <Route path="/mypage/saved" element={<SavedItemsPage />} />
       <Route path="/mypage/profile" element={<ProfileEditPage />} />
+      <Route path="/community" element={<CommunityPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Route>
   </Routes>;
