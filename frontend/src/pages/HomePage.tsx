@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { BusFront, Calculator, ChevronDown, MapPin, ReceiptText, Search, WalletCards } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, BriefcaseBusiness, BusFront, Calculator, ChevronDown, FileCheck2, Home, MapPin, ReceiptText, Search, WalletCards } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { REGIONS } from "../data/mockData";
 import type { QuickCondition, SimulationType } from "../types";
 
@@ -22,6 +23,7 @@ const SIMULATIONS: { id: SimulationType; icon: typeof BusFront; title: string; s
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [selectedSimulations, setSelectedSimulations] = useState<SimulationType[]>([]);
   const [form, setForm] = useState<Record<string, string>>({});
   const [regions, setRegions] = useState<string[]>([]);
@@ -80,6 +82,99 @@ export default function HomePage() {
       </div>
     </section>
 
-    <section className="mx-auto max-w-[1240px] px-6 py-20"><div className="text-center"><span className="text-xs font-bold tracking-[.18em] text-brand">WHAT WE OFFER</span><h2 className="mt-3 text-3xl font-bold">충북 정착의 모든 과정을 한곳에서</h2></div><div className="mt-10 grid gap-5 md:grid-cols-3">{[[MapPin,"나에게 맞는 지역 추천","일자리, 예산, 이동 방식과 생활 선호를 분석해 충북 11개 시·군 중 잘 맞는 지역을 제안해요."],[Calculator,"현실적인 생활비 계산","월급과 주거비, 교통비, 생활비를 비교해 이주 후의 월 잔여 금액을 미리 확인해요."],[ReceiptText,"놓치기 쉬운 정책 안내","청년·주거·취업·귀농귀촌 등 내 조건에 맞는 정착 지원 정책을 모아서 보여드려요."]].map(([Icon,title,desc],index)=><article key={String(title)} className="rounded-2xl border border-stone-200 bg-white p-7 shadow-card"><div className="flex items-center justify-between"><span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-light text-brand"><Icon size={23}/></span><span className="text-3xl font-black text-stone-100">0{index+1}</span></div><h3 className="mt-7 text-lg font-bold">{String(title)}</h3><p className="mt-3 text-[13px] leading-6 text-stone-500">{String(desc)}</p></article>)}</div></section>
+    <section className="mt-16 border-y border-emerald-100 bg-[#F1F6F3]">
+      <div className="mx-auto max-w-[1240px] px-6 py-16">
+        <div className="grid gap-8 border-b border-emerald-200/70 pb-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
+          <div>
+            <span className="text-xs font-bold text-brand">충북올겨 이용 안내</span>
+            <h2 className="mt-3 text-[30px] font-bold leading-[1.35] tracking-[-0.04em]">
+              지역을 고르는 일부터<br />실제 정착 준비까지
+            </h2>
+          </div>
+          <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
+            <p className="max-w-xl text-[13px] leading-6 text-stone-600">
+              막연한 지역 소개 대신 내 조건에 맞는 후보지를 찾고, 주거비와 이동 시간을 비교한 뒤
+              받을 수 있는 지원정책까지 순서대로 확인할 수 있습니다.
+            </p>
+            <Link to="/regions" className="flex shrink-0 items-center gap-2 border-b border-brand pb-1 text-xs font-bold text-brand">
+              충북 전체 지역 보기 <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid border-b border-emerald-200/70 py-9 md:grid-cols-3">
+          {[
+            ["01", "조건을 알려주세요", "직업·소득·주거 예산·이동수단", BriefcaseBusiness],
+            ["02", "지역을 비교해보세요", "충북 11개 시·군의 생활 조건", MapPin],
+            ["03", "생활을 준비하세요", "생활비·출퇴근·지원정책", Home],
+          ].map(([number, title, description, Icon], index) => (
+            <div key={String(number)} className={`relative flex gap-4 py-3 ${index ? "md:border-l md:border-emerald-200/70 md:pl-8" : ""} ${index < 2 ? "md:pr-8" : ""}`}>
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand/30 bg-white text-brand">
+                <Icon size={19} strokeWidth={1.7} />
+              </span>
+              <div>
+                <span className="text-[10px] font-bold tracking-[.12em] text-brand">{String(number)} STEP</span>
+                <h3 className="mt-1 text-[15px] font-bold">{String(title)}</h3>
+                <p className="mt-1 text-[11px] text-stone-500">{String(description)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 overflow-hidden border-y border-stone-300 bg-white">
+          <div className="grid lg:grid-cols-[340px_1fr]">
+            <div className="border-b border-stone-200 px-7 py-8 lg:border-b-0 lg:border-r">
+              <span className="text-[11px] font-bold text-brand">정착 준비 바로가기</span>
+              <h3 className="mt-2 text-xl font-bold leading-7 tracking-[-0.03em]">
+                지금 필요한 정보부터<br />차근차근 확인해보세요.
+              </h3>
+              <p className="mt-3 text-xs leading-5 text-stone-500">
+                지역 추천 결과는 로그인 없이 볼 수 있고 계정에는 저장되지 않습니다.
+              </p>
+              <Link
+                to={isLoggedIn ? "/recommendations" : "/login-required"}
+                state={isLoggedIn ? undefined : { from: "/recommendations" }}
+                className="mt-6 inline-flex items-center gap-2 rounded-md border border-brand px-4 py-2.5 text-xs font-bold text-brand transition-colors hover:bg-emerald-50"
+              >
+                내 조건으로 지역 찾기 <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            <div className="divide-y divide-stone-200">
+              {[
+                [MapPin, "지역", "충북 시·군 살펴보기", "11개 시·군의 주거, 교통, 생활환경 정보를 확인합니다.", "/regions"],
+                [Calculator, "생활", "생활비와 출퇴근 비교하기", "예상 주거비와 고정 지출, 이동 여건을 미리 계산합니다.", "/simulation/budget"],
+                [FileCheck2, "정책", "내 조건에 맞는 지원 찾기", "주거·취업·창업 등 이용 가능한 지원정책을 찾아봅니다.", "/policies"],
+              ].map(([Icon, category, title, description, path]) => (
+                <Link
+                  key={String(title)}
+                  to={!isLoggedIn && path === "/policies" ? "/login-required" : String(path)}
+                  state={!isLoggedIn && path === "/policies" ? { from: "/policies" } : undefined}
+                  className="group grid gap-4 px-6 py-5 transition-colors hover:bg-[#F8FAF8] sm:grid-cols-[42px_1fr_auto] sm:items-center"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md border border-emerald-200 text-brand">
+                    <Icon size={18} strokeWidth={1.8} />
+                  </span>
+                  <span>
+                    <small className="block text-[10px] font-bold text-brand">{String(category)}</small>
+                    <strong className="mt-0.5 block text-sm">{String(title)}</strong>
+                    <span className="mt-1 block text-[11px] leading-5 text-stone-500">{String(description)}</span>
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-semibold text-stone-500 group-hover:text-brand">
+                    바로가기 <ArrowRight size={12} />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-x-8 gap-y-2 border-t border-stone-200 bg-[#FAFAF8] px-7 py-3 text-[10px] text-stone-500">
+            <span><strong className="mr-1.5 text-stone-700">지역 정보</strong>충북 11개 시·군</span>
+            <span><strong className="mr-1.5 text-stone-700">생활 도구</strong>생활비·출퇴근·하루 살기·지출</span>
+            <span><strong className="mr-1.5 text-stone-700">지원 분야</strong>주거·취업·창업·귀농귀촌</span>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>;
 }
