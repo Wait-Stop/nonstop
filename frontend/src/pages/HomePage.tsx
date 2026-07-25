@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, BriefcaseBusiness, BusFront, Calculator, ChevronDown, FileCheck2, Home, MapPin, ReceiptText, Search, WalletCards } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { REGIONS } from "../data/mockData";
 import type { QuickCondition, SimulationType } from "../types";
 
@@ -22,6 +23,7 @@ const SIMULATIONS: { id: SimulationType; icon: typeof BusFront; title: string; s
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [selectedSimulations, setSelectedSimulations] = useState<SimulationType[]>([]);
   const [form, setForm] = useState<Record<string, string>>({});
   const [regions, setRegions] = useState<string[]>([]);
@@ -119,47 +121,57 @@ export default function HomePage() {
           ))}
         </div>
 
-        <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
-          <div className="overflow-hidden rounded-xl bg-brand text-white">
-            <div className="grid h-full md:grid-cols-[1fr_210px]">
-              <div className="p-7">
-                <span className="text-[11px] font-semibold text-emerald-100">내 조건에 맞는 정착 후보지</span>
-                <h3 className="mt-2 text-xl font-bold">어디에서 살지 고민된다면<br />지역 추천부터 시작해보세요.</h3>
-                <p className="mt-4 max-w-md text-xs leading-5 text-white/70">
-                  간편 검색은 로그인 없이 이용할 수 있으며, 회원정보나 추천 이력으로 저장되지 않습니다.
-                </p>
-                <Link to="/recommendations" className="mt-6 inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-xs font-bold text-brand">
-                  추천 지역 살펴보기 <ArrowRight size={13} />
+        <div className="mt-8 overflow-hidden border-y border-stone-300 bg-white">
+          <div className="grid lg:grid-cols-[340px_1fr]">
+            <div className="border-b border-stone-200 px-7 py-8 lg:border-b-0 lg:border-r">
+              <span className="text-[11px] font-bold text-brand">정착 준비 바로가기</span>
+              <h3 className="mt-2 text-xl font-bold leading-7 tracking-[-0.03em]">
+                지금 필요한 정보부터<br />차근차근 확인해보세요.
+              </h3>
+              <p className="mt-3 text-xs leading-5 text-stone-500">
+                지역 추천 결과는 로그인 없이 볼 수 있고 계정에는 저장되지 않습니다.
+              </p>
+              <Link
+                to={isLoggedIn ? "/recommendations" : "/login-required"}
+                state={isLoggedIn ? undefined : { from: "/recommendations" }}
+                className="mt-6 inline-flex items-center gap-2 rounded-md border border-brand px-4 py-2.5 text-xs font-bold text-brand transition-colors hover:bg-emerald-50"
+              >
+                내 조건으로 지역 찾기 <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            <div className="divide-y divide-stone-200">
+              {[
+                [MapPin, "지역", "충북 시·군 살펴보기", "11개 시·군의 주거, 교통, 생활환경 정보를 확인합니다.", "/regions"],
+                [Calculator, "생활", "생활비와 출퇴근 비교하기", "예상 주거비와 고정 지출, 이동 여건을 미리 계산합니다.", "/simulation/budget"],
+                [FileCheck2, "정책", "내 조건에 맞는 지원 찾기", "주거·취업·창업 등 이용 가능한 지원정책을 찾아봅니다.", "/policies"],
+              ].map(([Icon, category, title, description, path]) => (
+                <Link
+                  key={String(title)}
+                  to={!isLoggedIn && path === "/policies" ? "/login-required" : String(path)}
+                  state={!isLoggedIn && path === "/policies" ? { from: "/policies" } : undefined}
+                  className="group grid gap-4 px-6 py-5 transition-colors hover:bg-[#F8FAF8] sm:grid-cols-[42px_1fr_auto] sm:items-center"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md border border-emerald-200 text-brand">
+                    <Icon size={18} strokeWidth={1.8} />
+                  </span>
+                  <span>
+                    <small className="block text-[10px] font-bold text-brand">{String(category)}</small>
+                    <strong className="mt-0.5 block text-sm">{String(title)}</strong>
+                    <span className="mt-1 block text-[11px] leading-5 text-stone-500">{String(description)}</span>
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-semibold text-stone-500 group-hover:text-brand">
+                    바로가기 <ArrowRight size={12} />
+                  </span>
                 </Link>
-              </div>
-              <div className="grid grid-cols-2 border-l border-white/15 bg-black/5 p-5 md:grid-cols-1">
-                {[["11", "충북 시·군"], ["4", "생활 시뮬레이션"], ["5", "정책 분야"]].map(([value, label]) => (
-                  <div key={label} className="flex items-center justify-between border-b border-white/15 px-2 py-3 last:border-0">
-                    <span className="text-[11px] text-white/65">{label}</span>
-                    <strong className="text-xl">{value}</strong>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
 
-          <div className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
-            {[
-              [Calculator, "생활비 미리 계산하기", "주거비와 고정 지출을 월 단위로 확인", "/simulation/budget"],
-              [BusFront, "출퇴근 여건 확인하기", "이동 시간과 교통수단을 함께 비교", "/simulation/commute"],
-              [FileCheck2, "내게 맞는 정책 찾기", "주거·취업·창업 지원정보 확인", "/policies"],
-            ].map(([Icon, title, description, path]) => (
-              <Link key={String(title)} to={String(path)} className="group flex items-center gap-4 px-5 py-4 hover:bg-stone-50">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
-                  <Icon size={17} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <strong className="block text-[13px]">{String(title)}</strong>
-                  <small className="mt-1 block truncate text-[10px] text-stone-400">{String(description)}</small>
-                </span>
-                <ArrowRight size={14} className="text-stone-300 group-hover:text-brand" />
-              </Link>
-            ))}
+          <div className="flex flex-wrap gap-x-8 gap-y-2 border-t border-stone-200 bg-[#FAFAF8] px-7 py-3 text-[10px] text-stone-500">
+            <span><strong className="mr-1.5 text-stone-700">지역 정보</strong>충북 11개 시·군</span>
+            <span><strong className="mr-1.5 text-stone-700">생활 도구</strong>생활비·출퇴근·하루 살기·지출</span>
+            <span><strong className="mr-1.5 text-stone-700">지원 분야</strong>주거·취업·창업·귀농귀촌</span>
           </div>
         </div>
       </div>

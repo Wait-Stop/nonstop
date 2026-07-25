@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
+import LoginRequired from "./components/LoginRequired";
 import { LoginPage, SignupPage } from "./pages/AuthPages";
 import { CommunityPage, RegionComparePage, RegionsPage } from "./pages/ExplorePages";
 import HomePage from "./pages/HomePage";
@@ -13,6 +14,7 @@ export default function App() {
     <Route element={<Layout />}>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/login-required" element={<LoginRequired />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/recommendations" element={<RecommendationsPage />} />
       <Route path="/regions" element={<RegionsPage />} />
