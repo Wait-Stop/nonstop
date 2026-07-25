@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { BusFront, Calculator, ChevronDown, MapPin, ReceiptText, Search, WalletCards } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, BriefcaseBusiness, BusFront, Calculator, ChevronDown, FileCheck2, Home, MapPin, ReceiptText, Search, WalletCards } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { REGIONS } from "../data/mockData";
 import type { QuickCondition, SimulationType } from "../types";
 
@@ -80,6 +80,89 @@ export default function HomePage() {
       </div>
     </section>
 
-    <section className="mx-auto max-w-[1240px] px-6 py-20"><div className="text-center"><span className="text-xs font-bold tracking-[.18em] text-brand">WHAT WE OFFER</span><h2 className="mt-3 text-3xl font-bold">충북 정착의 모든 과정을 한곳에서</h2></div><div className="mt-10 grid gap-5 md:grid-cols-3">{[[MapPin,"나에게 맞는 지역 추천","일자리, 예산, 이동 방식과 생활 선호를 분석해 충북 11개 시·군 중 잘 맞는 지역을 제안해요."],[Calculator,"현실적인 생활비 계산","월급과 주거비, 교통비, 생활비를 비교해 이주 후의 월 잔여 금액을 미리 확인해요."],[ReceiptText,"놓치기 쉬운 정책 안내","청년·주거·취업·귀농귀촌 등 내 조건에 맞는 정착 지원 정책을 모아서 보여드려요."]].map(([Icon,title,desc],index)=><article key={String(title)} className="rounded-2xl border border-stone-200 bg-white p-7 shadow-card"><div className="flex items-center justify-between"><span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-light text-brand"><Icon size={23}/></span><span className="text-3xl font-black text-stone-100">0{index+1}</span></div><h3 className="mt-7 text-lg font-bold">{String(title)}</h3><p className="mt-3 text-[13px] leading-6 text-stone-500">{String(desc)}</p></article>)}</div></section>
+    <section className="mt-16 border-y border-emerald-100 bg-[#F1F6F3]">
+      <div className="mx-auto max-w-[1240px] px-6 py-16">
+        <div className="grid gap-8 border-b border-emerald-200/70 pb-10 lg:grid-cols-[.8fr_1.2fr] lg:items-end">
+          <div>
+            <span className="text-xs font-bold text-brand">충북올겨 이용 안내</span>
+            <h2 className="mt-3 text-[30px] font-bold leading-[1.35] tracking-[-0.04em]">
+              지역을 고르는 일부터<br />실제 정착 준비까지
+            </h2>
+          </div>
+          <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
+            <p className="max-w-xl text-[13px] leading-6 text-stone-600">
+              막연한 지역 소개 대신 내 조건에 맞는 후보지를 찾고, 주거비와 이동 시간을 비교한 뒤
+              받을 수 있는 지원정책까지 순서대로 확인할 수 있습니다.
+            </p>
+            <Link to="/regions" className="flex shrink-0 items-center gap-2 border-b border-brand pb-1 text-xs font-bold text-brand">
+              충북 전체 지역 보기 <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid border-b border-emerald-200/70 py-9 md:grid-cols-3">
+          {[
+            ["01", "조건을 알려주세요", "직업·소득·주거 예산·이동수단", BriefcaseBusiness],
+            ["02", "지역을 비교해보세요", "충북 11개 시·군의 생활 조건", MapPin],
+            ["03", "생활을 준비하세요", "생활비·출퇴근·지원정책", Home],
+          ].map(([number, title, description, Icon], index) => (
+            <div key={String(number)} className={`relative flex gap-4 py-3 ${index ? "md:border-l md:border-emerald-200/70 md:pl-8" : ""} ${index < 2 ? "md:pr-8" : ""}`}>
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand/30 bg-white text-brand">
+                <Icon size={19} strokeWidth={1.7} />
+              </span>
+              <div>
+                <span className="text-[10px] font-bold tracking-[.12em] text-brand">{String(number)} STEP</span>
+                <h3 className="mt-1 text-[15px] font-bold">{String(title)}</h3>
+                <p className="mt-1 text-[11px] text-stone-500">{String(description)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
+          <div className="overflow-hidden rounded-xl bg-brand text-white">
+            <div className="grid h-full md:grid-cols-[1fr_210px]">
+              <div className="p-7">
+                <span className="text-[11px] font-semibold text-emerald-100">내 조건에 맞는 정착 후보지</span>
+                <h3 className="mt-2 text-xl font-bold">어디에서 살지 고민된다면<br />지역 추천부터 시작해보세요.</h3>
+                <p className="mt-4 max-w-md text-xs leading-5 text-white/70">
+                  간편 검색은 로그인 없이 이용할 수 있으며, 회원정보나 추천 이력으로 저장되지 않습니다.
+                </p>
+                <Link to="/recommendations" className="mt-6 inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-xs font-bold text-brand">
+                  추천 지역 살펴보기 <ArrowRight size={13} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 border-l border-white/15 bg-black/5 p-5 md:grid-cols-1">
+                {[["11", "충북 시·군"], ["4", "생활 시뮬레이션"], ["5", "정책 분야"]].map(([value, label]) => (
+                  <div key={label} className="flex items-center justify-between border-b border-white/15 px-2 py-3 last:border-0">
+                    <span className="text-[11px] text-white/65">{label}</span>
+                    <strong className="text-xl">{value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+            {[
+              [Calculator, "생활비 미리 계산하기", "주거비와 고정 지출을 월 단위로 확인", "/simulation/budget"],
+              [BusFront, "출퇴근 여건 확인하기", "이동 시간과 교통수단을 함께 비교", "/simulation/commute"],
+              [FileCheck2, "내게 맞는 정책 찾기", "주거·취업·창업 지원정보 확인", "/policies"],
+            ].map(([Icon, title, description, path]) => (
+              <Link key={String(title)} to={String(path)} className="group flex items-center gap-4 px-5 py-4 hover:bg-stone-50">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
+                  <Icon size={17} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <strong className="block text-[13px]">{String(title)}</strong>
+                  <small className="mt-1 block truncate text-[10px] text-stone-400">{String(description)}</small>
+                </span>
+                <ArrowRight size={14} className="text-stone-300 group-hover:text-brand" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   </main>;
 }
