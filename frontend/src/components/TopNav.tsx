@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell, CheckCheck, ChevronDown, LogOut, MessageSquareText, UserRound } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -22,9 +22,26 @@ export default function TopNav() {
   const { isLoggedIn, profile, logout } = useAuth();
   const navigate = useNavigate();
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const [readIds, setReadIds] = useState<number[]>([]);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const unreadCount = NOTIFICATIONS.filter((item) => !readIds.includes(item.id)).length;
+  useEffect(() => {
+    if (!notificationOpen) return;
+    const closeOnOutside = (event: MouseEvent | TouchEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setNotificationOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", closeOnOutside);
+    document.addEventListener("touchstart", closeOnOutside);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutside);
+      document.removeEventListener("touchstart", closeOnOutside);
+    };
+  }, [notificationOpen]);
   return (
+    <>
     <header className="sticky top-0 z-40 h-[72px] border-b border-stone-200 bg-white/95 px-5 backdrop-blur md:px-10">
       <div className="mx-auto flex h-full max-w-[1320px] items-center justify-between">
         <div className="flex items-center gap-8 xl:gap-12">
@@ -47,13 +64,13 @@ export default function TopNav() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div ref={notificationRef} className="relative z-50">
             <button onClick={() => setNotificationOpen((open) => !open)} aria-label="알림" aria-expanded={notificationOpen} className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-stone-100">
               <Bell size={19} strokeWidth={1.7} className="text-stone-600" />
               {isLoggedIn && unreadCount > 0 && <span className="absolute right-1 top-1 h-2 w-2 rounded-full border-2 border-white bg-rose-500" />}
             </button>
             {notificationOpen && (
-              <div className="absolute right-0 top-12 w-[340px] overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_16px_45px_rgba(0,0,0,.14)]">
+              <div className="absolute right-0 top-12 z-50 w-[340px] overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_16px_45px_rgba(0,0,0,.14)]">
                 <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
                   <div><h2 className="text-sm font-bold">알림</h2>{isLoggedIn && <p className="mt-0.5 text-[10px] text-stone-400">읽지 않은 알림 {unreadCount}개</p>}</div>
                   {isLoggedIn && unreadCount > 0 && <button onClick={() => setReadIds(NOTIFICATIONS.map((item) => item.id))} className="flex items-center gap-1 text-[10px] font-semibold text-brand"><CheckCheck size={13}/>모두 읽음</button>}
@@ -74,7 +91,7 @@ export default function TopNav() {
           {isLoggedIn ? (
             <>
               <NavLink to="/mypage" className="flex items-center gap-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-semibold"><UserRound size={15} className="text-brand" />{profile.name}</NavLink>
-              <button onClick={() => { logout(); navigate("/"); }} aria-label="로그아웃"><LogOut size={18} className="text-stone-400" /></button>
+              <button onClick={() => setLogoutOpen(true)} aria-label="로그아웃"><LogOut size={18} className="text-stone-400" /></button>
             </>
           ) : (
             <Link to="/login" className="rounded-lg border border-brand px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand-light">로그인</Link>
@@ -82,5 +99,7 @@ export default function TopNav() {
         </div>
       </div>
     </header>
+    {logoutOpen&&<div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/35 px-5 pt-24" onMouseDown={(event)=>{if(event.target===event.currentTarget)setLogoutOpen(false);}}><section role="dialog" aria-modal="true" aria-labelledby="logout-title" className="logout-dialog-enter w-full max-w-sm rounded-xl border border-stone-200 bg-white p-7 text-center shadow-2xl"><span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-stone-100 text-stone-600"><LogOut size={20}/></span><h2 id="logout-title" className="mt-4 text-lg font-bold">로그아웃 하시겠습니까?</h2><p className="mt-2 text-xs text-stone-500">저장하지 않은 내용이 있다면 사라질 수 있습니다.</p><div className="mt-6 grid grid-cols-2 gap-2"><button onClick={()=>{logout();setLogoutOpen(false);navigate("/");}} className="rounded-lg bg-brand py-2.5 text-sm font-bold text-white">예</button><button onClick={()=>setLogoutOpen(false)} className="rounded-lg border border-stone-300 py-2.5 text-sm font-bold text-stone-600">아니요</button></div></section></div>}
+    </>
   );
 }

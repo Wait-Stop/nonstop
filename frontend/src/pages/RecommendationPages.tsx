@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
 import type { QuickCondition, RegionRecommendation } from "../types";
 
-const fallbackCondition: QuickCondition = { age: "30대", major: "공학계열", job: "IT·개발", salary: "3,600~4,500만원", rent: "60~80만원", transport: "자가용", preferredRegions: [], recommendRegion: true };
+const fallbackCondition: QuickCondition = { age: "30대", major: "공학계열", job: "IT·개발", salary: "3,600~4,500만원", rent: "60~80만원", deposit: "1,000~3,000만원", transport: "자가용", preferredRegions: [], recommendRegion: true };
 
 export function RecommendationsPage() {
   const location = useLocation();

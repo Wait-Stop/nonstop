@@ -6,7 +6,7 @@ const STORAGE_KEY = "chungbuk-olgyeo-auth";
 const defaultProfile: UserProfile = {
   name: "홍길동", email: "user@example.com", gender: "남성", currentRegion: "서울특별시",
   age: "30대", major: "공학계열", job: "IT·개발", salary: "3,600~4,500만원",
-  rent: "60~80만원", transport: "자가용", preferredRegions: ["청주시"], recommendRegion: false,
+  rent: "60~80만원", deposit: "1,000~3,000만원", transport: "자가용", preferredRegions: ["청주시"], recommendRegion: false,
 };
 
 interface AuthValue {

@@ -6,6 +6,7 @@ export interface QuickCondition {
   job: string;
   salary: string;
   rent: string;
+  deposit: string;
   transport: string;
   preferredRegions: string[];
   recommendRegion: boolean;

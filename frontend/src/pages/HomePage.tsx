@@ -11,6 +11,7 @@ const FIELDS = [
   ["job", "직업 및 직무", ["대학생", "무직", "IT·개발", "제조·생산", "사무·행정", "교육·연구", "서비스", "농업"]],
   ["salary", "현재 연봉", ["소득 없음", "2,400만원 미만", "2,400~3,000만원", "3,000~3,600만원", "3,600~4,500만원", "4,500~6,000만원", "6,000만원 이상", "기타"]],
   ["rent", "월세 예산", ["30만원 이하", "30~40만원", "40~50만원", "50~60만원", "60~80만원", "80만원 이상", "전세·매매 희망", "아직 정하지 않음"]],
+  ["deposit", "보증금 예산", ["보증금 없음", "500만원 이하", "500~1,000만원", "1,000~3,000만원", "3,000~5,000만원", "5,000만원 이상", "아직 정하지 않음"]],
   ["transport", "이동수단", ["자전거", "버스", "기차", "자가용", "기타", "도보"]],
 ] as const;
 
@@ -43,7 +44,7 @@ export default function HomePage() {
     }
     const condition: QuickCondition = {
       age: form.age, major: form.major, job: form.job, salary: form.salary,
-      rent: form.rent, transport: form.transport, preferredRegions: regions, recommendRegion: recommend,
+      rent: form.rent, deposit: form.deposit, transport: form.transport, preferredRegions: regions, recommendRegion: recommend,
     };
     localStorage.setItem("chungbuk-olgyeo-quick-condition", JSON.stringify(condition));
     navigate("/recommendations", { state: { condition, persist: false } });
@@ -72,7 +73,7 @@ export default function HomePage() {
     <section className="mx-auto max-w-[1240px] px-6">
       <div className="rounded-2xl border border-emerald-100 bg-[#F3FAF6] p-5">
         <div className="mb-4 flex items-end justify-between"><div><h2 className="text-lg font-bold">내 정착 조건으로 맞는 지역을 찾아보세요</h2><p className="mt-1 text-xs font-medium text-brand">로그인 없이 간단하게 추천받을 수 있으며, 이 결과는 계정에 저장되지 않습니다.</p></div><span className="rounded-full bg-white px-3 py-1 text-[10px] font-bold text-brand">비회원 이용 가능</span></div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
           {FIELDS.map(([key, label, options]) => <label key={key}><span className="mb-1.5 block text-[11px] font-medium text-stone-500">{label}</span><span className="relative block"><select value={form[key] || ""} onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))} className="h-10 w-full appearance-none rounded-lg border border-stone-300 bg-white px-3 pr-8 text-xs outline-none focus:border-brand"><option value="" disabled hidden>선택</option>{options.map((option) => <option key={option}>{option}</option>)}</select><ChevronDown size={13} className="pointer-events-none absolute right-3 top-3.5" /></span></label>)}
           <div className="relative"><span className="mb-1.5 block text-[11px] font-medium text-stone-500">희망 지역</span><button onClick={() => setRegionOpen((open) => !open)} className="flex h-10 w-full items-center justify-between rounded-lg border border-stone-300 bg-white px-3 text-xs"><span className="truncate">{recommend ? "추천받을게요" : regions.length ? `${regions.length}곳 선택` : "선택"}</span><ChevronDown size={13} /></button>
             {regionOpen && <div className="absolute right-0 top-16 z-20 w-64 rounded-xl border border-stone-200 bg-white p-3 shadow-xl"><button onClick={chooseRecommend} className={`mb-2 w-full rounded-lg border px-3 py-2 text-left text-xs font-bold ${recommend ? "border-brand bg-brand-light text-brand" : "border-stone-200"}`}>추천받을게요 <span className="ml-1 text-[9px] font-normal text-stone-400">지역 자동 추천</span></button><div className="grid grid-cols-2 gap-1 border-t border-stone-100 pt-2">{REGIONS.map((region) => <label key={region} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-stone-50"><input type="checkbox" checked={regions.includes(region)} onChange={() => toggleRegion(region)} className="accent-brand" />{region}</label>)}</div><button onClick={() => setRegionOpen(false)} className="mt-2 w-full rounded-lg bg-brand py-2 text-xs font-bold text-white">선택 완료</button></div>}
