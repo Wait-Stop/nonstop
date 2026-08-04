@@ -1,0 +1,7 @@
+[
+  {"region":"청주시","region_type":"도시형","strengths":["일자리 접근성","생활 인프라","대중교통"],"weaknesses":["상대적으로 높은 주거비"],"recommended_for":["취업 희망","도시 생활 선호","대중교통 선호"],"job_score":90,"housing_cost_score":60,"transport_score":85,"life_infra_score":90,"rural_score":20,"startup_score":70},
+  {"region":"충주시","region_type":"균형형 도시","strengths":["도시 인프라","생활비 균형","주거·창업 정책"],"weaknesses":["청주시보다 적은 일자리 선택지"],"recommended_for":["신혼부부","창업 관심","중간 규모 도시 선호"],"job_score":75,"housing_cost_score":75,"transport_score":70,"life_infra_score":78,"rural_score":50,"startup_score":80},
+  {"region":"진천군","region_type":"산업형 소도시","strengths":["산업단지","제조업 일자리","실속형 생활비"],"weaknesses":["제한적인 대중교통과 문화 인프라"],"recommended_for":["제조업 취업","산업단지 근무","실속형 정착"],"job_score":85,"housing_cost_score":82,"transport_score":55,"life_infra_score":65,"rural_score":55,"startup_score":55},
+  {"region":"옥천군","region_type":"소도시·농촌형","strengths":["정착형 주거 정책","낮은 생활비","조용한 환경"],"weaknesses":["제한적인 일자리와 도시 인프라"],"recommended_for":["전입 정착","낮은 생활비","조용한 지역 선호"],"job_score":55,"housing_cost_score":88,"transport_score":50,"life_infra_score":58,"rural_score":78,"startup_score":60},
+  {"region":"괴산군","region_type":"농촌형","strengths":["농촌 정착","로컬창업","자연환경"],"weaknesses":["도시 인프라와 대중교통이 상대적으로 약함"],"recommended_for":["귀농귀촌","로컬창업","자연환경 선호"],"job_score":45,"housing_cost_score":92,"transport_score":35,"life_infra_score":45,"rural_score":100,"startup_score":85}
+]
