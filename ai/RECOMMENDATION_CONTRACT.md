@@ -45,3 +45,44 @@
 ```
 
 추천 점수와 신청 가능 여부는 확정값처럼 표현하지 않고 추정 또는 추가 확인이 필요한 정보로 취급합니다.
+
+## Python 추천 서비스 내부 API
+
+NestJS는 Python FastAPI 서비스의 아래 엔드포인트를 호출합니다.
+
+- 상태 확인: `GET /health`
+- 정책·지역 추천: `POST /recommend`
+- 개발 문서: `GET /docs`
+
+요청 예시:
+
+```json
+{
+  "age": 31,
+  "preferred_region": "충주시",
+  "housing_type": "전세",
+  "monthly_income": 3500000,
+  "is_house_owner": false,
+  "employment_status": "재직중",
+  "startup_interest": false,
+  "rural_interest": false,
+  "newlywed": true,
+  "has_loan": true,
+  "needs_housing_loan": false,
+  "transportation": "자가용",
+  "interests": ["주거", "금융"]
+}
+```
+
+응답 최상위 구조:
+
+```json
+{
+  "policies": [],
+  "regions": [],
+  "caution": "추천 결과는 참고용이며 실제 신청 가능 여부는 신청 시점의 공식 공고문 확인이 필요합니다."
+}
+```
+
+입력 검증 실패는 FastAPI 표준에 따라 `422 Unprocessable Entity`로 반환합니다.
+NestJS는 내부 서비스의 422 응답을 외부 API 계약에 맞게 변환할 수 있습니다.

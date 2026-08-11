@@ -13,6 +13,8 @@
 - `test_recommend.py`: 대표 사용자 3명의 실행 예제
 - `test_policy_recommender.py`: 정책 점수·순위 회귀 테스트
 - `test_region_recommender.py`: 지역 순위·응답 구조 회귀 테스트
+- `api.py`: NestJS가 호출할 FastAPI 내부 추천 API
+- `test_api.py`: 추천 API 요청·응답 계약 테스트
 
 ## 점수 기준
 
@@ -32,6 +34,26 @@ python ai/test_recommend.py
 
 ```bash
 python -m unittest discover -s ai -p 'test_*recommender.py' -v
+```
+
+## FastAPI 실행
+
+의존성을 설치하고 프로젝트 루트에서 추천 서비스를 실행합니다.
+
+```bash
+python -m pip install -r ai/requirements.txt
+python -m uvicorn ai.api:app --host 0.0.0.0 --port 8001
+```
+
+- 상태 확인: `GET http://localhost:8001/health`
+- 추천 요청: `POST http://localhost:8001/recommend`
+- API 문서: `http://localhost:8001/docs`
+
+FastAPI를 포함한 전체 자동 테스트는 다음과 같이 실행합니다.
+
+```bash
+python -m pip install -r ai/requirements-dev.txt
+python -m unittest discover -s ai -p 'test_*.py' -v
 ```
 
 전세대출 정책은 기존 대출 보유 여부인 `has_loan`과 향후 대출 이용 의도인
