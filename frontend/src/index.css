@@ -24,3 +24,24 @@ input {
 button {
   cursor: pointer;
 }
+
+@keyframes logout-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-48px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logout-dialog-enter {
+  animation: logout-slide-down 240ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logout-dialog-enter {
+    animation: none;
+  }
+}
