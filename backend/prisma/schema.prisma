@@ -8,36 +8,41 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(uuid()) @db.Uuid
-  email       String?
-  password    String?
-  name        String?
-  created_at  DateTime     @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime?    @updatedAt @db.Timestamptz(6)
+  id         String    @id @default(uuid()) @db.Uuid
+  email      String?
+  password   String?
+  name       String?
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
 
-  simulations Simulation[]
+  simulations    Simulation[]
+  saved_regions  SavedRegion[]
+  saved_policies SavedPolicy[]
 
   @@map("Users")
 }
 
 model Region {
-  id          String       @id @default(uuid()) @db.Uuid
-  name        String?
-  population  Int?
-  avg_cost    Int?
-  job_score   Int?
-  life_score  Int?
-  created_at  DateTime     @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime?    @updatedAt @db.Timestamptz(6)
+  id         String    @id @default(uuid()) @db.Uuid
+  code       String?   @unique
+  name       String?
+  population Int?
+  avg_cost   Int?
+  job_score  Int?
+  life_score Int?
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
 
-  simulations Simulation[]
-  policies    Policy[]
+  simulations   Simulation[]
+  policies      Policy[]
+  saved_regions SavedRegion[]
 
   @@map("regions")
 }
 
 model Policy {
   id          String    @id @default(uuid()) @db.Uuid
+  code        String?   @unique
   region_id   String?   @db.Uuid
   title       String?
   description String?
@@ -45,21 +50,52 @@ model Policy {
   created_at  DateTime  @default(now()) @db.Timestamptz(6)
   updated_at  DateTime? @updatedAt @db.Timestamptz(6)
 
-  region Region? @relation(fields: [region_id], references: [id])
+  region         Region?       @relation(fields: [region_id], references: [id])
+  saved_policies SavedPolicy[]
 
   @@map("policies")
 }
 
 model Simulation {
-  id          String    @id @default(uuid()) @db.Uuid
-  user_id     String?   @db.Uuid
-  region_id   String?   @db.Uuid
-  score       Int?
-  created_at  DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime? @updatedAt @db.Timestamptz(6)
+  id        String  @id @default(uuid()) @db.Uuid
+  user_id   String? @db.Uuid
+  region_id String? @db.Uuid
+  score     Int?
+
+  condition Json?
+  results   Json?
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
 
   user   User?   @relation(fields: [user_id], references: [id])
   region Region? @relation(fields: [region_id], references: [id])
 
   @@map("simulations")
+}
+
+model SavedRegion {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  region_id  String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  region Region @relation(fields: [region_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, region_id])
+  @@map("saved_regions")
+}
+
+model SavedPolicy {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  policy_id  String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  policy Policy @relation(fields: [policy_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, policy_id])
+  @@map("saved_policies")
 }
