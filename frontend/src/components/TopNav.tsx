@@ -18,6 +18,14 @@ export default function TopNav() {
   const location = useLocation();
   const loginState = location.pathname === "/login" ? undefined : { from: `${location.pathname}${location.search}` };
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const isNavActive = (label: string) => {
+    if (label === "정착 시뮬레이션") return location.pathname.startsWith("/simulation");
+    if (label === "정책 찾기") return location.pathname.startsWith("/policies");
+    if (label === "지역 알아보기") return location.pathname.startsWith("/regions") || location.pathname.startsWith("/recommendations");
+    if (label === "커뮤니티") return location.pathname.startsWith("/community");
+    if (label === "마이페이지") return location.pathname.startsWith("/mypage");
+    return false;
+  };
   return (
     <>
     <header className="sticky top-0 z-40 h-[72px] border-b border-stone-200 bg-white/95 px-5 backdrop-blur md:px-10">
@@ -26,10 +34,10 @@ export default function TopNav() {
           <Link to="/" aria-label="충북올겨 홈"><Logo /></Link>
           <nav className="hidden items-center gap-2 lg:flex">
             {NAV_ITEMS.map((nav) => nav.items.length === 0 ? (
-              <Link key={nav.label} to="/community" className="flex h-[72px] items-center px-4 text-[14px] font-semibold text-stone-700 transition-colors hover:text-brand">{nav.label}</Link>
+              <Link key={nav.label} to="/community" className={`flex h-[72px] items-center border-b-2 px-4 text-[14px] font-semibold transition-colors hover:text-brand ${isNavActive(nav.label) ? "border-brand text-brand" : "border-transparent text-stone-700"}`}>{nav.label}</Link>
             ) : (
               <div key={nav.label} className="group relative">
-                <Link to={nav.label === "정착 시뮬레이션" ? "/simulation" : nav.label === "정책 찾기" ? "/policies" : nav.label === "지역 알아보기" ? "/regions" : "/mypage"} className="flex h-[72px] items-center gap-1 px-4 text-[14px] font-semibold text-stone-700 transition-colors hover:text-brand">
+                <Link to={nav.label === "정착 시뮬레이션" ? "/simulation" : nav.label === "정책 찾기" ? "/policies" : nav.label === "지역 알아보기" ? "/regions" : "/mypage"} className={`flex h-[72px] items-center gap-1 border-b-2 px-4 text-[14px] font-semibold transition-colors hover:text-brand ${isNavActive(nav.label) ? "border-brand text-brand" : "border-transparent text-stone-700"}`}>
                   {nav.label}<ChevronDown size={13} className="transition-transform group-hover:rotate-180" />
                 </Link>
                 <div className="invisible absolute left-1/2 top-[64px] w-48 -translate-x-1/2 translate-y-2 rounded-xl border border-stone-200 bg-white p-2 opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
