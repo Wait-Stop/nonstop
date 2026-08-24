@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: chungbuk-ollgyeo
+    runtime: node
+    plan: free
+    region: singapore
+    branch: develop
+    buildCommand: npm ci && npm --prefix backend ci && node backend/node_modules/prisma/build/index.js generate --schema backend/prisma/schema.prisma && npm run build && npm --prefix backend run build
+    startCommand: node backend/node_modules/prisma/build/index.js migrate deploy --schema backend/prisma/schema.prisma && node backend/dist/main.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: chungbuk-ollgyeo-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_RECOMMENDATION_BASE_URL
+        fromService:
+          type: web
+          name: chungbuk-ollgyeo-ai
+          property: hostport
+
+  - type: web
+    name: chungbuk-ollgyeo-ai
+    runtime: python
+    plan: free
+    region: singapore
+    branch: develop
+    buildCommand: pip install -r ai/requirements.txt
+    startCommand: uvicorn ai.api:app --host 0.0.0.0 --port $PORT
+
+databases:
+  - name: chungbuk-ollgyeo-db
+    plan: free
+    region: singapore
+    databaseName: chungbuk_ollgyeo
+    user: chungbuk_ollgyeo

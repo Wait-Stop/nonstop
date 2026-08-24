@@ -246,10 +246,13 @@ export class RecommendationsService {
     );
 
     try {
-      const baseUrl =
+      const configuredBaseUrl =
         process.env.AI_RECOMMENDATION_BASE_URL ||
         process.env.AI_API_BASE_URL ||
         'http://localhost:8001';
+      const baseUrl = /^https?:\/\//.test(configuredBaseUrl)
+        ? configuredBaseUrl
+        : `http://${configuredBaseUrl}`;
       const response: Response = await fetch(`${baseUrl}/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
