@@ -15,6 +15,20 @@ npm --prefix backend start
 `DATABASE_URL`이 없으면 인증, 회원정보, 저장한 지역/정책처럼 DB가 필요한 API는 사용할 수 없습니다.
 다만 정책/지역 조회, 간편 추천, 생활비/출퇴근 시뮬레이션, AI 상담 mock 응답 같은 공개 API는 로컬 발표·데모 환경에서도 확인할 수 있도록 서버가 부팅됩니다.
 
+## 생활비 공공데이터 연동
+
+`POST /api/cost-simulations`는 공공 API 키가 있으면 실제 외부 데이터를 우선 사용하고, 키가 없거나 조회 결과가 없으면 백엔드 MVP 기준값으로 fallback합니다.
+
+```bash
+DATA_GO_KR_SERVICE_KEY=공공데이터포털_일반_인증키 npm --prefix backend start
+```
+
+- `DATA_GO_KR_SERVICE_KEY` 또는 `MOLIT_SERVICE_KEY`: 국토교통부 전월세 실거래가 OpenAPI 키입니다. 월세 평균 계산에 사용합니다.
+- `KOSIS_LIVING_COSTS_URL`: KOSIS에서 URL 생성한 소비지출 통계 JSON 호출 URL입니다. `{KOSIS_API_KEY}` placeholder를 넣으면 실행 시 치환합니다.
+- `KOSIS_API_KEY`: KOSIS OpenAPI 인증키입니다.
+
+현재 바로 연결된 외부 데이터는 국토교통부 아파트/오피스텔/연립다세대/단독다가구 전월세 실거래가입니다. KOSIS 소비지출은 통계표마다 항목 코드가 달라서 KOSIS URL 생성 결과를 환경변수로 넣는 방식으로 연결합니다.
+
 ## AI 추천 서비스 연동
 
 `POST /api/recommendations`와 `POST /api/policies/recommendations`는 Python FastAPI 추천 서비스가 실행 중이면 실제 AI 추천 응답을 사용합니다.

@@ -214,12 +214,18 @@ export default function SimulationPage() {
               <div className="h-full rounded-full bg-brand" style={{ width: `${Math.min(100, Math.max(12, cost?.result.rentBurdenRate || 24))}%` }} />
             </div>
             <p className="mt-3 text-[10px] leading-4 text-stone-400">주거비 부담률 {cost?.result.rentBurdenRate ?? "-"}% · 보증금은 초기 필요 자금에 반영됩니다.</p>
+            <p className="mt-2 text-[10px] font-bold text-brand">
+              {cost?.dataSources?.housing.status === "external" ? "국토부 실거래가 반영" : "지역 기준값 사용"}
+            </p>
           </div>
 
           <div className="rounded-2xl bg-brand p-6 text-white">
             <p className="text-xs text-white/70">월 예상 저축 가능액</p>
             <strong className="mt-2 block text-3xl">+{formatMoney(cost?.result.savingPossibleAmount)}</strong>
             <p className="mt-3 text-[11px] text-white/70">{cost?.result.stabilityLevel || "계산 중"} · 교통비 {formatMoney(commute?.monthlyTransportationCost)}</p>
+            <p className="mt-1 text-[10px] text-white/60">
+              {cost?.dataSources?.livingCosts.status === "external" ? "KOSIS 소비지출 반영" : "MVP 생활비 기준값"}
+            </p>
           </div>
         </div>
       </section>
