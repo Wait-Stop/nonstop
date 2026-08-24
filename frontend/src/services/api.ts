@@ -239,4 +239,25 @@ export const api = {
       },
     );
   },
+  async createCommunityPost(input: {
+  category: string;
+  title: string;
+  content: string;
+}) {
+  return request<{
+    id: string;
+    category: string;
+    title: string;
+    excerpt: string;
+    authorName: string;
+    viewCount: number;
+    commentCount: number;
+    likeCount: number;
+    createdAt: string;
+    updatedAt: string;
+  }>("/community/posts", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+},
 };
