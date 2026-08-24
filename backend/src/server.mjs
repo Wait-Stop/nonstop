@@ -2,6 +2,7 @@ import http from "node:http";
 import { randomUUID } from "node:crypto";
 
 const PORT = Number(process.env.PORT || 8080);
+const AI_BASE_URL = process.env.AI_RECOMMENDATION_BASE_URL || process.env.AI_API_BASE_URL || "http://localhost:8001";
 const MVP_REGION_NAMES = ["청주시", "충주시", "진천군", "옥천군", "괴산군"];
 const DEMO_TOKEN = "demo-token";
 
@@ -452,6 +453,154 @@ function recommendRegions(condition = {}) {
     .slice(0, 3);
 }
 
+function parseAge(value) {
+  if (typeof value === "number") return value;
+  const match = String(value || "").match(/\d+/);
+  return match ? Number(match[0]) : null;
+}
+
+function toAiHousingType(condition = {}) {
+  const value = `${condition.rent || ""} ${condition.deposit || ""}`;
+  if (value.includes("전세")) return "전세";
+  if (value.includes("자가") || value.includes("매매")) return "자가";
+  if (condition.rent && !String(condition.rent).includes("정하지")) return "월세";
+  return "기타";
+}
+
+function toAiEmploymentStatus(job = "") {
+  if (["무직", "대학생"].some((keyword) => job.includes(keyword))) return "미취업";
+  if (job.includes("창업")) return "창업준비중";
+  if (job) return "재직중";
+  return "기타";
+}
+
+function toAiTransportation(transport = "") {
+  if (transport === "자가용") return "자가용";
+  if (["버스", "기차", "도보", "자전거"].includes(transport)) return "대중교통";
+  return "기타";
+}
+
+function toAiInterests(condition = {}) {
+  const interests = new Set(["주거"]);
+  const job = condition.job || "";
+  if (job && !["무직", "대학생"].includes(job)) interests.add("취업");
+  if (job.includes("창업")) interests.add("창업");
+  if (job.includes("농업")) interests.add("농촌");
+  if (`${condition.rent || ""} ${condition.deposit || ""}`.includes("전세")) interests.add("금융");
+  return [...interests];
+}
+
+function toAiRecommendationRequest(condition = {}) {
+  return {
+    age: parseAge(condition.age),
+    preferred_region: condition.recommendRegion ? null : condition.preferredRegions?.[0] || null,
+    housing_type: toAiHousingType(condition),
+    monthly_income: salaryToMonthlyNet(condition.salary) * 10000,
+    is_house_owner: condition.rent === "전세·매매 희망" ? null : false,
+    employment_status: toAiEmploymentStatus(condition.job),
+    startup_interest: condition.job?.includes("창업") || false,
+    rural_interest: condition.job?.includes("농업") || false,
+    newlywed: null,
+    has_loan: null,
+    needs_housing_loan: condition.deposit?.includes("5,000만원 이상") || false,
+    transportation: toAiTransportation(condition.transport),
+    interests: toAiInterests(condition),
+  };
+}
+
+async function requestAiRecommendations(condition = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), Number(process.env.AI_RECOMMENDATION_TIMEOUT_MS || 1200));
+  try {
+    const response = await fetch(`${AI_BASE_URL}/recommend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(toAiRecommendationRequest(condition)),
+      signal: controller.signal,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const error = new Error(data?.detail ? JSON.stringify(data.detail) : "AI recommendation request failed");
+      error.status = response.status;
+      throw error;
+    }
+    return data;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function aiRegionToRecommendation(item, condition = {}) {
+  const region = findRegionOrNull(item.region) || regions.find((candidate) => candidate.area === item.region);
+  if (!region) return null;
+  return {
+    id: region.id,
+    name: region.name,
+    area: region.area,
+    score: item.match_score,
+    type: item.region_type || region.type,
+    reasons: item.reasons?.length ? item.reasons : [
+      `${condition.job || "입력 조건"} 기준으로 생활권을 비교했습니다.`,
+      "추천 정책과 함께 검토할 수 있는 지역입니다.",
+    ],
+    rent: region.averageRent,
+    commute: region.averageCommute,
+    carNeed: region.carNeed,
+    infrastructure: region.infrastructure,
+    policyCount: item.recommended_policy_names?.length || region.relatedPolicyIds.length,
+    image: region.image,
+    imageSource: region.imageSource,
+    source: "ai",
+  };
+}
+
+async function recommendRegionsWithAiFallback(condition = {}) {
+  try {
+    const aiResult = await requestAiRecommendations(condition);
+    const items = (aiResult.regions || []).map((item) => aiRegionToRecommendation(item, condition)).filter(Boolean);
+    return items.length ? items : recommendRegions(condition);
+  } catch (error) {
+    console.warn("AI recommendation service unavailable. Falling back to backend MVP rules.", error.message);
+    return recommendRegions(condition);
+  }
+}
+
+function aiPolicyToRecommendation(item) {
+  const policy = policies.find((candidate) => candidate.id === item.policy_id);
+  const base = policy ? policyListItem(policy) : {
+    id: item.policy_id,
+    title: item.policy_name,
+    category: item.category,
+    region: item.region,
+    benefit: item.support_summary,
+    period: "공고 확인 필요",
+    eligibility: "세부 조건 확인 필요",
+    summary: item.reason,
+    status: "확인 필요",
+    lastChecked: null,
+  };
+  return {
+    ...base,
+    matchScore: item.match_score,
+    matchLevel: item.match_level === "높음" ? "가능성 높음" : item.match_level === "중간" ? "추가 확인 필요" : "가능성 낮음",
+    matchedConditions: item.matched_factors || [],
+    missingFields: item.missing_info || [],
+    recommendReason: item.reason,
+    caution: item.caution,
+  };
+}
+
+async function recommendPoliciesWithAiFallback(condition = {}) {
+  try {
+    const aiResult = await requestAiRecommendations(condition);
+    const items = (aiResult.policies || []).map(aiPolicyToRecommendation);
+    return items.length ? items : mockAiPolicyRecommendations(condition);
+  } catch (error) {
+    console.warn("AI policy recommendation service unavailable. Falling back to backend MVP rules.", error.message);
+    return mockAiPolicyRecommendations(condition);
+  }
+}
+
 function saveRecommendationIfNeeded(user, body, items) {
   if (!body.persist || !user) return null;
   const record = {
@@ -768,7 +917,7 @@ async function router(req, res) {
     const body = await readJson(req);
     if (!body.condition) return jsonResponse(res, 400, { code: "INVALID_RECOMMENDATION_CONDITION", message: "추천 조건이 올바르지 않습니다." });
     const user = getUser(req);
-    const items = recommendRegions(body.condition);
+    const items = await recommendRegionsWithAiFallback(body.condition);
     const record = saveRecommendationIfNeeded(user, body, items);
     return jsonResponse(res, 200, record ? { recommendationId: record.id, items } : items);
   }
@@ -803,7 +952,8 @@ async function router(req, res) {
 
   if (req.method === "POST" && pathname === "/api/policies/recommendations") {
     const body = await readJson(req);
-    return jsonResponse(res, 200, { userId: body.userId || null, recommendedPolicies: mockAiPolicyRecommendations(body.condition || {}) });
+    const recommendedPolicies = await recommendPoliciesWithAiFallback(body.condition || {});
+    return jsonResponse(res, 200, { userId: body.userId || null, recommendedPolicies });
   }
 
   if (req.method === "GET" && parts[0] === "api" && parts[1] === "policies" && parts[2] && parts[3] === "checklist") {
@@ -912,4 +1062,3 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Chungbuk Olgyeo backend listening on http://localhost:${PORT}`);
 });
-

@@ -47,6 +47,15 @@ export interface Policy {
   period: string;
   eligibility: string;
   summary: string;
+  status?: string;
+  lastChecked?: string;
+  detail?: string;
+  requiredDocuments?: string[];
+  agency?: string;
+  applyUrl?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+  caution?: string;
 }
 
 export interface UserProfile extends QuickCondition {
