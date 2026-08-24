@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /login
+Disallow: /signup
+Disallow: /mypage
+Disallow: /recommendations
+
+Sitemap: https://chungbuk-ollgyeo.onrender.com/sitemap.xml
