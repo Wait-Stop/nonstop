@@ -7,3 +7,4 @@ Disallow: /mypage
 Disallow: /recommendations
 
 Sitemap: https://chungbuk-ollgyeo.onrender.com/sitemap.xml
+Sitemap: https://chungbuk-ollgyeo.onrender.com/sitemap.txt
