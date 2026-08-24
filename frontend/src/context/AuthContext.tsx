@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api } from "../services/api";
 import type { UserProfile } from "../types";
 
@@ -33,20 +33,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(next);
   };
 
+  useEffect(() => {
+    if (!isLoggedIn || profile.id) return;
+    api.getMyProfile()
+      .then((details) => saveProfile({ ...defaultProfile, ...profile, ...details }))
+      .catch(() => undefined);
+  }, [isLoggedIn, profile]);
+
   const value = useMemo<AuthValue>(() => ({
     isLoggedIn,
     profile,
     login: async (email, password) => {
       const user = await api.login(email, password);
       const details = await api.getMyProfile().catch(() => user);
-      saveProfile({ ...defaultProfile, ...profile, ...details, email: user.email, name: user.name });
+      saveProfile({ ...defaultProfile, ...profile, ...details, id: String(details.id || user.id), email: user.email, name: user.name });
       setLoggedIn(true);
     },
     signup: async (email, password, nextProfile) => {
       await api.signup(email, password, nextProfile.name);
       await api.login(email, password);
       await api.updateMyProfile(nextProfile);
-      saveProfile(nextProfile);
+      const details = await api.getMyProfile();
+      saveProfile({ ...nextProfile, id: String(details.id || "") });
       setLoggedIn(true);
     },
     logout: () => {

@@ -67,11 +67,16 @@ export interface Policy {
 }
 
 export interface UserProfile extends QuickCondition {
+  id?: string;
   name: string;
   email: string;
   gender: string;
   currentRegion: string;
 }
+
+export interface CommunityAuthor { id: string; name: string }
+export interface CommunityComment { id: string; postId: string; content: string; author: CommunityAuthor; authorName: string; createdAt: string }
+export interface CommunityPost { id: string; category: string; title: string; excerpt: string; content?: string; author: CommunityAuthor; authorName: string; viewCount: number; commentCount: number; likeCount: number; createdAt: string; comments?: CommunityComment[] }
 
 export interface CostSimulation {
   userId: string | null;

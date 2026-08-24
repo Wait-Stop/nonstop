@@ -395,6 +395,10 @@ const state = {
   communityReactionsByPost: new Map(),
 };
 
+// 통합 개발 서버에서도 목 게시글을 노출하지 않고 사용자가 작성한 글만 유지한다.
+state.communityPosts = [];
+state.communityCommentsByPost.clear();
+
 function jsonResponse(res, status, payload) {
   const body = JSON.stringify(payload, null, 2);
   res.writeHead(status, {
@@ -1278,6 +1282,27 @@ async function router(req, res) {
     if (liked) reactions.add(user.id);
     else reactions.delete(user.id);
     return jsonResponse(res, 200, { postId: post.id, liked, likeCount: reactions.size });
+  }
+
+  if (req.method === "DELETE" && parts[0] === "api" && parts[1] === "community" && parts[2] === "posts" && parts[3] && !parts[4]) {
+    const user = requireUser(req);
+    const post = findCommunityPost(parts[3]);
+    if (post.author.id !== user.id) return jsonResponse(res, 403, { message: "본인이 작성한 게시글만 삭제할 수 있습니다." });
+    state.communityPosts.splice(state.communityPosts.indexOf(post), 1);
+    state.communityCommentsByPost.delete(post.id);
+    state.communityReactionsByPost.delete(post.id);
+    return jsonResponse(res, 200, { deleted: true, postId: post.id });
+  }
+
+  if (req.method === "DELETE" && parts[0] === "api" && parts[1] === "community" && parts[2] === "posts" && parts[3] && parts[4] === "comments" && parts[5]) {
+    const user = requireUser(req);
+    const post = findCommunityPost(parts[3]);
+    const comments = getCommunityComments(post.id);
+    const index = comments.findIndex((item) => item.id === parts[5]);
+    if (index < 0) return jsonResponse(res, 404, { message: "댓글을 찾을 수 없습니다." });
+    if (comments[index].author.id !== user.id) return jsonResponse(res, 403, { message: "본인이 작성한 댓글만 삭제할 수 있습니다." });
+    comments.splice(index, 1);
+    return jsonResponse(res, 200, { deleted: true, commentId: parts[5] });
   }
 
   if (parts[0] === "api" && parts[1] === "users" && parts[2] === "me") {

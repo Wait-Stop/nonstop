@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -55,5 +56,23 @@ export class CommunityController {
     const user = req['user'] as { sub: string };
 
     return this.communityService.toggleReaction(user.sub, postId);
+  }
+
+  @Delete('posts/:postId')
+  @UseGuards(JwtAuthGuard)
+  deletePost(@Req() req: Request, @Param('postId') postId: string) {
+    const user = req['user'] as { sub: string };
+    return this.communityService.deletePost(user.sub, postId);
+  }
+
+  @Delete('posts/:postId/comments/:commentId')
+  @UseGuards(JwtAuthGuard)
+  deleteComment(
+    @Req() req: Request,
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+  ) {
+    const user = req['user'] as { sub: string };
+    return this.communityService.deleteComment(user.sub, postId, commentId);
   }
 }

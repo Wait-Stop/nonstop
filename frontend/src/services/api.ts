@@ -1,5 +1,5 @@
 import { MUNICIPALITIES, POLICIES, REGION_RECOMMENDATIONS } from "../data/mockData";
-import type { AiChatResponse, CommuteSimulation, CostSimulation, Policy, QuickCondition, RegionRecommendation, UserProfile } from "../types";
+import type { AiChatResponse, CommuteSimulation, CommunityComment, CommunityPost, CostSimulation, Policy, QuickCondition, RegionRecommendation, UserProfile } from "../types";
 
 const delay = (ms = 550) => new Promise((resolve) => window.setTimeout(resolve, ms));
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
@@ -61,7 +61,7 @@ export const api = {
   async getMyProfile(): Promise<Partial<UserProfile> & { email: string; name: string }> {
     const user = await request<Record<string, unknown>>("/users/me");
     return {
-      name: String(user.name || ""), email: String(user.email || ""),
+      id: String(user.id || ""), name: String(user.name || ""), email: String(user.email || ""),
       age: user.age == null ? "" : String(user.age), gender: String(user.gender || ""),
       currentRegion: String(user.currentRegion || user.current_region || ""), major: String(user.major || ""),
       job: String(user.job || ""), salary: String(user.salary || ""), rent: String(user.rent || ""),
@@ -69,6 +69,28 @@ export const api = {
       preferredRegions: (user.preferredRegions || user.preferred_regions || []) as string[],
       recommendRegion: Boolean(user.recommendRegion ?? user.recommend_region),
     };
+  },
+  async getCommunityPosts(params: { category?: string; q?: string; tab?: string; page?: number } = {}) {
+    const query = new URLSearchParams();
+    if (params.category) query.set("category", params.category);
+    if (params.q) query.set("q", params.q);
+    if (params.tab) query.set("tab", params.tab);
+    query.set("page", String(params.page || 1));
+    query.set("pageSize", "10");
+    return request<{ posts: CommunityPost[]; meta: { page: number; total: number; totalPages: number } }>(`/community/posts?${query}`);
+  },
+  async getCommunityPost(postId: string) { return request<CommunityPost>(`/community/posts/${encodeURIComponent(postId)}`); },
+  async createCommunityPost(body: { category: string; title: string; content: string }) {
+    return request<CommunityPost>("/community/posts", { method: "POST", body: JSON.stringify(body) });
+  },
+  async createCommunityComment(postId: string, content: string) {
+    return request<CommunityComment>(`/community/posts/${encodeURIComponent(postId)}/comments`, { method: "POST", body: JSON.stringify({ content }) });
+  },
+  async deleteCommunityPost(postId: string) {
+    return request<{ deleted: boolean }>(`/community/posts/${encodeURIComponent(postId)}`, { method: "DELETE" });
+  },
+  async deleteCommunityComment(postId: string, commentId: string) {
+    return request<{ deleted: boolean }>(`/community/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}`, { method: "DELETE" });
   },
   async updateMyProfile(profile: UserProfile) {
     return request<Record<string, unknown>>("/users/me", {
