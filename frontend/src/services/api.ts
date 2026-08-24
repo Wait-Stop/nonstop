@@ -2,6 +2,11 @@ import { MUNICIPALITIES, POLICIES, REGION_RECOMMENDATIONS } from "../data/mockDa
 import type { Policy, QuickCondition, RegionRecommendation } from "../types";
 
 const delay = (ms = 550) => new Promise((resolve) => window.setTimeout(resolve, ms));
+const POLICY_ID_ALIASES: Record<string, string> = {
+  CB_HOUSING_001: "youth-rent",
+  CB_JOB_001: "job-settle",
+  CB_STARTUP_001: "startup",
+};
 
 /**
  * Backend/AI integration boundary.
@@ -37,6 +42,6 @@ export const api = {
   async getPolicy(id: string): Promise<Policy | undefined> {
     await delay(200);
     // TODO(BE): GET /policies/:id
-    return POLICIES.find((policy) => policy.id === id);
+    return POLICIES.find((policy) => policy.id === id || policy.id === POLICY_ID_ALIASES[id]);
   },
 };

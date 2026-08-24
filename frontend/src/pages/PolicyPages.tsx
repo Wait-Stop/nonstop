@@ -2,6 +2,12 @@ import { ArrowLeft, CalendarDays, CheckCircle2, ExternalLink, FileText, MapPin, 
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { POLICIES } from "../data/mockData";
 
+const POLICY_ID_ALIASES: Record<string, string> = {
+  CB_HOUSING_001: "youth-rent",
+  CB_JOB_001: "job-settle",
+  CB_STARTUP_001: "startup",
+};
+
 export function PoliciesPage() {
   const [params] = useSearchParams();
   const category = params.get("category");
@@ -11,7 +17,7 @@ export function PoliciesPage() {
 
 export function PolicyDetailPage() {
   const { id } = useParams();
-  const policy = POLICIES.find((item) => item.id === id);
+  const policy = POLICIES.find((item) => item.id === id || item.id === POLICY_ID_ALIASES[id || ""]);
   if (!policy) return <main className="p-20 text-center">정책을 찾을 수 없습니다.</main>;
   return <main className="mx-auto max-w-[900px] px-6 py-9"><Link to="/policies" className="flex items-center gap-1 text-xs text-stone-500"><ArrowLeft size={14}/>정책 목록</Link><section className="mt-5 rounded-2xl border border-stone-200 bg-white p-8"><span className="rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand">{policy.category}</span><h1 className="mt-5 text-3xl font-bold">{policy.title}</h1><p className="mt-4 text-sm leading-7 text-stone-500">{policy.summary}</p><div className="mt-8 grid gap-4 sm:grid-cols-2">{[[Wallet,"지원 내용",policy.benefit],[MapPin,"대상 지역",policy.region],[CalendarDays,"신청 기간",policy.period],[CheckCircle2,"신청 대상",policy.eligibility]].map(([Icon,label,value])=><div key={String(label)} className="rounded-xl bg-stone-50 p-5"><Icon size={20} className="text-brand"/><span className="mt-3 block text-[10px] text-stone-400">{String(label)}</span><b className="mt-1 block text-sm">{String(value)}</b></div>)}</div><div className="mt-8 border-t border-stone-100 pt-7"><h2 className="flex items-center gap-2 text-lg font-bold"><FileText className="text-brand"/>신청 방법 및 필요 서류</h2><ol className="mt-4 space-y-3 text-sm text-stone-600"><li>1. 공식 사업 공고에서 현재 모집 여부를 확인합니다.</li><li>2. 주민등록등본, 소득 증빙 등 대상자 확인 서류를 준비합니다.</li><li>3. 담당 기관 온라인 또는 방문 접수처로 신청합니다.</li></ol><button className="mt-6 flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white">공식 안내 페이지로 이동<ExternalLink size={15}/></button></div></section></main>;
 }
