@@ -15,10 +15,7 @@ import { UserRecommendationsController } from './user-recommendations.controller
       },
     }),
   ],
-  controllers: [
-    RecommendationsController,
-    UserRecommendationsController,
-  ],
+  controllers: [RecommendationsController, UserRecommendationsController],
   providers: [RecommendationsService],
 })
 export class RecommendationsModule {}

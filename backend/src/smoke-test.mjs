@@ -15,8 +15,6 @@ async function request(path, options = {}) {
   return data;
 }
 
-const auth = { Authorization: "Bearer demo-token" };
-
 const checks = [
   ["health", () => request("/api/health")],
   ["regions", () => request("/api/regions")],
@@ -25,9 +23,8 @@ const checks = [
   ["policy-detail", () => request("/api/policies/CB_HOUSING_001")],
   ["recommendations", () => request("/api/recommendations", {
     method: "POST",
-    headers: auth,
     body: JSON.stringify({
-      persist: true,
+      persist: false,
       condition: {
         age: "30대",
         major: "공학계열",
@@ -40,7 +37,6 @@ const checks = [
       },
     }),
   })],
-  ["recommendation-history", () => request("/api/users/me/recommendations", { headers: auth })],
   ["policy-recommendations", () => request("/api/policies/recommendations", {
     method: "POST",
     body: JSON.stringify({
@@ -80,21 +76,10 @@ const checks = [
       context: { regionIds: ["cheongju", "chungju"], policyIds: ["CB_HOUSING_001"] },
     }),
   })],
-  ["save-region", () => request("/api/users/me/saved-regions", {
-    method: "POST",
-    headers: auth,
-    body: JSON.stringify({ regionId: "cheongju" }),
-  })],
   ["checklist", () => request("/api/policies/CB_HOUSING_001/checklist")],
-  ["patch-checklist", () => request("/api/users/me/policy-checklists/CB_HOUSING_001", {
-    method: "PATCH",
-    headers: auth,
-    body: JSON.stringify({ checkedItems: ["item_age", "doc_1"] }),
-  })],
 ];
 
 for (const [name, run] of checks) {
   const data = await run();
   console.log(`ok ${name}`, Array.isArray(data) ? `items=${data.length}` : Object.keys(data).join(","));
 }
-

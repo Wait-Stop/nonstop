@@ -42,11 +42,12 @@ export const api = {
   async getRecommendations(condition: QuickCondition, options: { persist: boolean }): Promise<RegionRecommendation[]> {
     return withMockFallback(
       async () => {
-        const data = await request<RegionRecommendation[] | { items: RegionRecommendation[] }>("/recommendations", {
+        const data = await request<RegionRecommendation[] | { items: RegionRecommendation[]; results: RegionRecommendation[] }>("/recommendations", {
           method: "POST",
           body: JSON.stringify({ condition, persist: options.persist }),
         });
-        return Array.isArray(data) ? data : data.items;
+        if (Array.isArray(data)) return data;
+        return data.items || data.results || [];
       },
       async () => {
         await delay();
@@ -74,7 +75,10 @@ export const api = {
   },
   async getPolicies(): Promise<Policy[]> {
     return withMockFallback(
-      () => request<Policy[]>("/policies"),
+      async () => {
+        const data = await request<Policy[] | { policies: Policy[] }>("/policies");
+        return Array.isArray(data) ? data : data.policies;
+      },
       async () => {
         await delay(250);
         return POLICIES;

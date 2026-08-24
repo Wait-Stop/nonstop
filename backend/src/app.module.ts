@@ -7,16 +7,15 @@ import { AuthModule } from './auth/auth.module';
 import { RegionsModule } from './regions/regions.module';
 import { PoliciesModule } from './policies/policies.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
-import { CostSimulationsController } from './cost-simulations/cost-simulations.controller';
 import { CostSimulationsModule } from './cost-simulations/cost-simulations.module';
 import { CommuteSimulationsModule } from './commute-simulations/commute-simulations.module';
 import { AiChatModule } from './ai-chat/ai-chat.module';
 
 @Module({
   imports: [
-    PrismaModule, 
-    UsersModule, 
-    AuthModule, 
+    PrismaModule,
+    UsersModule,
+    AuthModule,
     RegionsModule,
     PoliciesModule,
     RecommendationsModule,

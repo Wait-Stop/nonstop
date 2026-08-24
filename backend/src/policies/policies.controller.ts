@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import type { RecommendationCondition } from '../recommendations/recommendations.service';
 import { PoliciesService } from './policies.service';
 
 @Controller('api/policies')
@@ -21,9 +22,9 @@ export class PoliciesController {
   }
 
   @Post('recommendations')
-  recommend(@Body('condition') condition: Record<string, any>) {
+  async recommend(@Body('condition') condition: RecommendationCondition) {
     return {
-      recommendedPolicies: this.policiesService.recommend(condition),
+      recommendedPolicies: await this.policiesService.recommend(condition),
     };
   }
 }

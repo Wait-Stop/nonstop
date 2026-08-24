@@ -1,5 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+export interface CommuteSimulationRequest {
+  userId?: string | null;
+  regionId?: string;
+  job?: string;
+  origin?: {
+    name?: string;
+    [key: string]: unknown;
+  };
+  destination?: {
+    name?: string;
+    [key: string]: unknown;
+  };
+  transport?: {
+    type?: string;
+    maxCommuteMinutes?: string | number;
+  };
+}
+
 @Injectable()
 export class CommuteSimulationsService {
   private readonly regions = [
@@ -63,7 +81,7 @@ export class CommuteSimulationsService {
     return carNeed === '필요' ? 18 : 12;
   }
 
-  calculate(body: any) {
+  calculate(body: CommuteSimulationRequest) {
     const region = this.regions.find((item) => item.id === body.regionId);
 
     if (!region) {
@@ -87,10 +105,7 @@ export class CommuteSimulationsService {
       oneWay += 10;
     }
 
-    if (
-      type === '버스' &&
-      ['권장', '필요'].includes(region.carNeed)
-    ) {
+    if (type === '버스' && ['권장', '필요'].includes(region.carNeed)) {
       oneWay += 10;
     }
 
@@ -121,11 +136,7 @@ export class CommuteSimulationsService {
         : region.carNeed === '필요'
           ? '필요'
           : '권장',
-      commuteLevel: possible
-        ? '적합'
-        : oneWay <= max + 15
-          ? '주의'
-          : '어려움',
+      commuteLevel: possible ? '적합' : oneWay <= max + 15 ? '주의' : '어려움',
       cautions: [
         '출퇴근 계산 결과는 대표 생활권과 교통 데이터를 기준으로 한 예상값입니다.',
         '실제 소요 시간은 근무지 위치, 시간대, 배차 간격에 따라 달라질 수 있습니다.',

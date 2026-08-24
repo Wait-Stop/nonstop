@@ -62,10 +62,7 @@ export class AuthService {
     }
 
     // 3. 입력한 비밀번호와 DB의 암호화된 비밀번호 비교
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password ?? '',
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password ?? '');
 
     // 4. 비밀번호가 틀리면 로그인 실패
     if (!isPasswordValid) {

@@ -16,11 +16,8 @@ export class AuthController {
     );
   }
 
-    @Post('login')
-    login(@Body() loginDto: LoginDto) {
-        return this.authService.login(
-            loginDto.email,
-            loginDto.password,
-        );
-    }
+  @Post('login')
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto.email, loginDto.password);
+  }
 }

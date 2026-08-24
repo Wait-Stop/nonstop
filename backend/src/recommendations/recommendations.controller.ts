@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { RecommendationsService } from './recommendations.service';
+import type { RecommendationCondition } from './recommendations.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 interface JwtPayload {
@@ -19,8 +20,10 @@ interface JwtPayload {
 
 interface RecommendationRequest {
   persist?: boolean;
-  condition?: Record<string, any>;
+  condition?: RecommendationCondition;
 }
+
+type AuthenticatedRequest = Request & { user?: JwtPayload };
 
 @Controller('api/recommendations')
 export class RecommendationsController {
@@ -29,19 +32,18 @@ export class RecommendationsController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   async recommend(
     @Body() body: RecommendationRequest,
-    @Req() request: Request,
+    @Req() request: AuthenticatedRequest,
   ) {
     if (!body.condition) {
       throw new BadRequestException('추천 조건이 올바르지 않습니다.');
     }
 
-    const results = this.recommendationsService.recommend(body.condition);
+    const results = await this.recommendationsService.recommend(body.condition);
 
-    if (body.persist === true) {
-      const user = request['user'] as JwtPayload;
+    if (body.persist === true && request.user) {
+      const user = request.user;
 
       const saved = await this.recommendationsService.saveRecommendation(
         user.sub,
@@ -63,9 +65,9 @@ export class RecommendationsController {
   @UseGuards(JwtAuthGuard)
   async findOne(
     @Param('recommendationId') recommendationId: string,
-    @Req() request: Request,
+    @Req() request: AuthenticatedRequest,
   ) {
-    const user = request['user'] as JwtPayload;
+    const user = request.user as JwtPayload;
 
     return this.recommendationsService.findOneRecommendation(
       recommendationId,

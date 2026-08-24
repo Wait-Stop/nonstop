@@ -1,6 +1,8 @@
 # AI 추천 API 연결 계약 초안
 
-현재 추천 결과는 `frontend/src/data/mockData.ts`에서 반환됩니다.
+프론트엔드는 NestJS 백엔드 API를 호출하고, NestJS는 내부적으로 Python FastAPI 추천 서비스를 호출합니다.
+AI 서비스가 꺼져 있거나 응답하지 않으면 백엔드는 MVP 규칙 기반 추천으로 fallback합니다.
+프론트엔드의 `frontend/src/data/mockData.ts`는 백엔드가 꺼진 로컬 UI 개발 상황에서만 fallback으로 사용합니다.
 
 ## 추천 요청
 
@@ -27,24 +29,67 @@
 ## 추천 응답
 
 ```json
-[
-  {
-    "id": "cheongju",
-    "name": "청주시 오창읍",
-    "area": "청주시",
-    "score": 94,
-    "type": "산업단지 직장인형",
-    "reasons": ["IT·반도체 일자리 접근성"],
-    "rent": 58,
-    "commute": 28,
-    "carNeed": "있으면 편리",
-    "infrastructure": ["충북대병원"],
-    "policyCount": 12
-  }
-]
+{
+  "results": [
+    {
+      "id": "cheongju",
+      "name": "청주시 오창읍",
+      "area": "청주시",
+      "score": 94,
+      "type": "산업단지 직장인형",
+      "reasons": ["IT·반도체 일자리 접근성"],
+      "rent": 58,
+      "commute": 28,
+      "carNeed": "있으면 편리",
+      "infrastructure": ["충북대병원"],
+      "policyCount": 12,
+      "source": "ai"
+    }
+  ]
+}
 ```
 
 추천 점수와 신청 가능 여부는 확정값처럼 표현하지 않고 추정 또는 추가 확인이 필요한 정보로 취급합니다.
+
+## 정책 추천 요청
+
+`POST /api/policies/recommendations`
+
+```json
+{
+  "condition": {
+    "age": "30대",
+    "job": "IT·개발",
+    "salary": "3,600~4,500만원",
+    "rent": "60~80만원",
+    "deposit": "1,000~3,000만원",
+    "transport": "자가용",
+    "preferredRegions": ["청주시"]
+  }
+}
+```
+
+응답은 아래처럼 정책 카드에 필요한 필드를 `recommendedPolicies`에 담아 반환합니다.
+
+```json
+{
+  "recommendedPolicies": [
+    {
+      "id": "CB_HOUSING_001",
+      "title": "충북 청년 월세 지원",
+      "category": "주거",
+      "region": "충북 전역",
+      "matchScore": 88,
+      "matchLevel": "가능성 높음",
+      "matchedConditions": ["주거"],
+      "missingFields": [],
+      "recommendReason": "입력 조건 기준으로 관련성이 높습니다.",
+      "caution": "원문 공고 확인 필요",
+      "source": "ai"
+    }
+  ]
+}
+```
 
 ## Python 추천 서비스 내부 API
 

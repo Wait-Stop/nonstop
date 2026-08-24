@@ -42,15 +42,10 @@ export class RegionsService {
       carNeed: '선택',
       infrastructure: ['충주역', '충주기업도시', '건국대병원', '대형마트'],
       jobKeywords: ['제조·생산', '사무·행정', '서비스', '창업'],
-      relatedPolicyIds: [
-        'CB_HOUSING_001',
-        'CH_HOUSING_001',
-        'CH_STARTUP_001',
-      ],
+      relatedPolicyIds: ['CB_HOUSING_001', 'CH_HOUSING_001', 'CH_STARTUP_001'],
       image:
         'https://commons.wikimedia.org/wiki/Special:FilePath/Chungjuho_Lake.jpg?width=1200',
-      imageSource:
-        'https://commons.wikimedia.org/wiki/File:Chungjuho_Lake.jpg',
+      imageSource: 'https://commons.wikimedia.org/wiki/File:Chungjuho_Lake.jpg',
     },
     {
       id: 'jincheon',
@@ -91,15 +86,10 @@ export class RegionsService {
       carNeed: '권장',
       infrastructure: ['옥천역', '대청호 생활권', '옥천군청', '전통시장'],
       jobKeywords: ['서비스', '농업', '사무·행정', '로컬창업'],
-      relatedPolicyIds: [
-        'OK_HOUSING_001',
-        'OK_HOUSING_002',
-        'CB_HOUSING_001',
-      ],
+      relatedPolicyIds: ['OK_HOUSING_001', 'OK_HOUSING_002', 'CB_HOUSING_001'],
       image:
         'https://commons.wikimedia.org/wiki/Special:FilePath/옥천성당.jpg?width=1200',
-      imageSource:
-        'https://commons.wikimedia.org/wiki/File:옥천성당.jpg',
+      imageSource: 'https://commons.wikimedia.org/wiki/File:옥천성당.jpg',
     },
     {
       id: 'goesan',
@@ -120,11 +110,7 @@ export class RegionsService {
         '로컬 커뮤니티',
       ],
       jobKeywords: ['농업', '로컬창업', '서비스', '관광'],
-      relatedPolicyIds: [
-        'GS_HOUSING_001',
-        'GS_STARTUP_001',
-        'CB_STARTUP_001',
-      ],
+      relatedPolicyIds: ['GS_HOUSING_001', 'GS_STARTUP_001', 'CB_STARTUP_001'],
       image:
         'https://commons.wikimedia.org/wiki/Special:FilePath/Oeryong-ri,_Buljeong-myeon,_Goesan-gun,_Chungcheongbuk-do,_South_Korea_-_panoramio.jpg?width=1200',
       imageSource: 'https://commons.wikimedia.org/wiki/Category:Goesan',

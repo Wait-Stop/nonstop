@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import type { CostSimulationRequest } from './cost-simulations.service';
 import { CostSimulationsService } from './cost-simulations.service';
 
 @Controller('api/cost-simulations')
@@ -8,7 +9,7 @@ export class CostSimulationsController {
   ) {}
 
   @Post()
-  calculate(@Body() body: any) {
+  calculate(@Body() body: CostSimulationRequest) {
     return this.costSimulationsService.calculate(body);
   }
 }

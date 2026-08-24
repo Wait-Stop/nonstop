@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import type { CommuteSimulationRequest } from './commute-simulations.service';
 import { CommuteSimulationsService } from './commute-simulations.service';
 
 @Controller('api/commute-simulations')
@@ -8,7 +9,7 @@ export class CommuteSimulationsController {
   ) {}
 
   @Post()
-  calculate(@Body() body: any) {
+  calculate(@Body() body: CommuteSimulationRequest) {
     return this.commuteSimulationsService.calculate(body);
   }
 }

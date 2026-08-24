@@ -1,8 +1,21 @@
 import { Injectable } from '@nestjs/common';
 
+export interface AiChatRequest {
+  message?: string;
+  condition?: {
+    transport?: string;
+    [key: string]: unknown;
+  };
+  context?: {
+    regionIds?: string[];
+    policyIds?: string[];
+    [key: string]: unknown;
+  };
+}
+
 @Injectable()
 export class AiChatService {
-  chat(body: any) {
+  chat(body: AiChatRequest) {
     const message = body.message || '';
     const condition = body.condition || {};
     const context = body.context || {};

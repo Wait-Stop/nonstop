@@ -1,5 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+export interface CostSimulationRequest {
+  userId?: string | null;
+  regionId?: string;
+  income?: {
+    monthlyIncome?: number;
+    salary?: string | number;
+  };
+  housing?: {
+    rent?: string | number;
+    deposit?: string | number;
+    maintenanceFee?: number;
+  };
+  transport?: {
+    type?: string;
+  };
+  policy?: {
+    includeSupport?: boolean;
+    monthlySupportAmount?: string | number;
+  };
+}
+
 @Injectable()
 export class CostSimulationsService {
   private readonly regions = [
@@ -80,7 +101,7 @@ export class CostSimulationsService {
     return carNeed === '필요' ? 18 : 12;
   }
 
-  calculate(body: any) {
+  calculate(body: CostSimulationRequest) {
     const region = this.regions.find((item) => item.id === body.regionId);
 
     if (!region) {
@@ -91,10 +112,7 @@ export class CostSimulationsService {
       body.income?.monthlyIncome ||
       this.salaryToMonthlyNet(body.income?.salary);
 
-    const rent = this.rentToMonthlyRent(
-      body.housing?.rent,
-      region.averageRent,
-    );
+    const rent = this.rentToMonthlyRent(body.housing?.rent, region.averageRent);
 
     const maintenanceFee =
       body.housing?.maintenanceFee ?? region.averageMaintenanceFee;
@@ -125,17 +143,10 @@ export class CostSimulationsService {
 
     const monthlyBalance = monthlyNet + support - totalMonthlyCost;
 
-    const savingPossibleAmount = Math.max(
-      0,
-      Math.round(monthlyBalance * 0.7),
-    );
+    const savingPossibleAmount = Math.max(0, Math.round(monthlyBalance * 0.7));
 
     const initialRequiredAmount =
-      Number(body.housing?.deposit || 500) +
-      50 +
-      rent +
-      maintenanceFee +
-      80;
+      Number(body.housing?.deposit || 500) + 50 + rent + maintenanceFee + 80;
 
     return {
       userId: body.userId || null,
@@ -144,9 +155,7 @@ export class CostSimulationsService {
       income: {
         monthlyGrossIncome:
           body.income?.monthlyIncome ||
-          Math.round(
-            this.toNumberRangeAverage(body.income?.salary, 3000) / 12,
-          ),
+          Math.round(this.toNumberRangeAverage(body.income?.salary, 3000) / 12),
         estimatedMonthlyNetIncome: monthlyNet,
       },
       costs: {
@@ -161,9 +170,7 @@ export class CostSimulationsService {
         monthlyBalance,
         savingPossibleAmount,
         initialRequiredAmount,
-        rentBurdenRate: Number(
-          ((rent / monthlyNet) * 100).toFixed(1),
-        ),
+        rentBurdenRate: Number(((rent / monthlyNet) * 100).toFixed(1)),
         stabilityLevel:
           monthlyBalance >= 80
             ? '안정'
