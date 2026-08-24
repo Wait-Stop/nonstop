@@ -29,11 +29,13 @@ model User {
   created_at DateTime  @default(now()) @db.Timestamptz(6)
   updated_at DateTime? @updatedAt @db.Timestamptz(6)
 
-  simulations       Simulation[]
-  saved_regions     SavedRegion[]
-  saved_policies    SavedPolicy[]
-  policy_checklists PolicyChecklist[]
-  community_posts   CommunityPost[]
+  simulations         Simulation[]
+  saved_regions       SavedRegion[]
+  saved_policies      SavedPolicy[]
+  policy_checklists   PolicyChecklist[]
+  community_posts     CommunityPost[]
+  community_comments  CommunityComment[]
+  community_reactions CommunityReaction[]
 
   @@map("Users")
 }
@@ -133,14 +135,49 @@ model PolicyChecklist {
 }
 
 model CommunityPost {
-  id         String   @id @default(uuid()) @db.Uuid
-  user_id    String   @db.Uuid
+  id         String    @id @default(uuid()) @db.Uuid
+  user_id    String    @db.Uuid
+  category   String
   title      String
   content    String
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
+  view_count Int       @default(0)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user      User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  comments  CommunityComment[]
+  reactions CommunityReaction[]
 
+  @@index([category])
+  @@index([created_at])
   @@map("community_posts")
+}
+
+model CommunityComment {
+  id         String    @id @default(uuid()) @db.Uuid
+  post_id    String    @db.Uuid
+  user_id    String    @db.Uuid
+  content    String
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
+
+  post CommunityPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([post_id, created_at])
+  @@map("community_comments")
+}
+
+model CommunityReaction {
+  id         String   @id @default(uuid()) @db.Uuid
+  post_id    String   @db.Uuid
+  user_id    String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  post CommunityPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([post_id, user_id])
+  @@index([user_id])
+  @@map("community_reactions")
 }
