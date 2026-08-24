@@ -5,7 +5,7 @@ services:
     plan: free
     region: singapore
     branch: develop
-    buildCommand: npm ci && npm --prefix backend ci && node backend/node_modules/prisma/build/index.js generate --schema backend/prisma/schema.prisma && npm run build && npm --prefix backend run build
+    buildCommand: npm ci --include=dev && npm --prefix backend ci --include=dev && node backend/node_modules/prisma/build/index.js generate --schema backend/prisma/schema.prisma && npm run build && npm --prefix backend run build
     startCommand: node backend/node_modules/prisma/build/index.js db push --schema backend/prisma/schema.prisma && node backend/dist/main.js
     envVars:
       - key: NODE_ENV
