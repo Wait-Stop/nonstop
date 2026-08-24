@@ -32,16 +32,17 @@ const services = [
     env: process.env,
   },
   {
-    name: "백엔드",
-    command: process.execPath,
-    args: ["backend/src/server.mjs"],
-    env: {
-      ...process.env,
-      PORT: process.env.PORT || "8080",
-      AI_RECOMMENDATION_BASE_URL:
-        process.env.AI_RECOMMENDATION_BASE_URL || "http://127.0.0.1:8001",
-    },
+  name: "백엔드",
+  command: npmCommand,
+  args: ["--prefix", "backend", "run", "start:dev"],
+  env: {
+    ...process.env,
+    PORT: process.env.PORT || "8080",
+    AI_RECOMMENDATION_BASE_URL:
+      process.env.AI_RECOMMENDATION_BASE_URL || "http://127.0.0.1:8001",
   },
+  shell: isWindows,
+},
   {
     name: "프론트엔드",
     command: npmCommand,
