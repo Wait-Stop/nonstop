@@ -77,8 +77,19 @@ chungbuk-ollgyeo/
 
 ```bash
 npm install
+npm --prefix frontend install
+python -m venv .venv
+.venv/bin/python -m pip install -r ai/requirements.txt
 npm run dev
 ```
+
+`npm run dev`는 다음 서비스를 한 번에 실행합니다.
+
+- 프론트엔드: `http://localhost:5173`
+- 백엔드: `http://localhost:8080`
+- AI 추천 API: `http://127.0.0.1:8001`
+
+세 서비스를 함께 종료하려면 실행 중인 터미널에서 `Ctrl+C`를 누릅니다.
 
 Windows PowerShell에서 실행 정책 또는 명령 인식 문제가 있으면 다음처럼 실행할 수 있습니다.
 
@@ -102,10 +113,10 @@ npm run build
 ### 프론트엔드만 직접 실행
 
 ```bash
-cd frontend
-npm install
-npm run dev
+npm run dev:frontend
 ```
+
+백엔드와 AI만 각각 실행하려면 `npm run dev:backend`, `npm run dev:ai`를 사용합니다.
 
 ## 환경변수
 

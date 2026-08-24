@@ -8,3 +8,4 @@ frontend/vite.config.js
 frontend/vite.config.d.ts
 __pycache__/
 *.py[cod]
+.venv/

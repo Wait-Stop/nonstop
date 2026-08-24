@@ -6,7 +6,11 @@
     "frontend"
   ],
   "scripts": {
-    "dev": "npm --prefix frontend run dev",
+    "dev": "node scripts/dev-all.mjs",
+    "dev:all": "node scripts/dev-all.mjs",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "node backend/src/server.mjs",
+    "dev:ai": ".venv/bin/python -m uvicorn ai.api:app --host 127.0.0.1 --port 8001",
     "build": "npm --prefix frontend run build",
     "preview": "npm --prefix frontend run preview",
     "install:frontend": "npm --prefix frontend install"
