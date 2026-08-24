@@ -64,3 +64,68 @@ export interface UserProfile extends QuickCondition {
   gender: string;
   currentRegion: string;
 }
+
+export interface CostSimulation {
+  userId: string | null;
+  regionId: string;
+  regionName: string;
+  income: {
+    monthlyGrossIncome: number;
+    estimatedMonthlyNetIncome: number;
+  };
+  costs: {
+    rent: number;
+    maintenanceFee: number;
+    food: number;
+    transportation: number;
+    telecom: number;
+    utilities: number;
+    otherLiving: number;
+    totalMonthlyCost: number;
+  };
+  policySupport: {
+    included: boolean;
+    monthlyAmount: number;
+  };
+  result: {
+    monthlyBalance: number;
+    savingPossibleAmount: number;
+    initialRequiredAmount: number;
+    rentBurdenRate: number;
+    stabilityLevel: string;
+  };
+  cautions: string[];
+}
+
+export interface CommuteSimulation {
+  userId: string | null;
+  regionId: string;
+  regionName: string;
+  job: string | null;
+  origin: {
+    name?: string;
+  };
+  destination: {
+    name?: string;
+  };
+  transportType: string;
+  estimatedOneWayMinutes: number;
+  estimatedRoundTripMinutes: number;
+  maxCommuteMinutes: number;
+  isCommutePossible: boolean;
+  monthlyTransportationCost: number;
+  carNeed: string;
+  commuteLevel: string;
+  cautions: string[];
+}
+
+export interface AiChatResponse {
+  answer: string;
+  usedContext: {
+    condition?: Partial<QuickCondition>;
+    regionIds?: string[];
+    policyIds?: string[];
+  };
+  isMock: boolean;
+  caution: string;
+}

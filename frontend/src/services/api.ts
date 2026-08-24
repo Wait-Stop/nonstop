@@ -1,5 +1,5 @@
 import { MUNICIPALITIES, POLICIES, REGION_RECOMMENDATIONS } from "../data/mockData";
-import type { Policy, QuickCondition, RegionRecommendation } from "../types";
+import type { AiChatResponse, CommuteSimulation, CostSimulation, Policy, QuickCondition, RegionRecommendation } from "../types";
 
 const delay = (ms = 550) => new Promise((resolve) => window.setTimeout(resolve, ms));
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
@@ -8,6 +8,8 @@ const POLICY_ID_ALIASES: Record<string, string> = {
   CB_JOB_001: "job-settle",
   CB_STARTUP_001: "startup",
 };
+
+const DEFAULT_REGION_ID = "cheongju";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -91,6 +93,86 @@ export const api = {
       async () => {
         await delay(200);
         return POLICIES.find((policy) => policy.id === id || policy.id === POLICY_ID_ALIASES[id]);
+      },
+    );
+  },
+  async calculateCost(condition: QuickCondition, regionId = DEFAULT_REGION_ID): Promise<CostSimulation> {
+    return withMockFallback(
+      () => request<CostSimulation>("/cost-simulations", {
+        method: "POST",
+        body: JSON.stringify({
+          regionId,
+          income: { salary: condition.salary },
+          housing: { rent: condition.rent, deposit: condition.deposit, maintenanceFee: 8 },
+          transport: { type: condition.transport },
+          policy: { includeSupport: true, monthlySupportAmount: 20 },
+        }),
+      }),
+      async () => {
+        await delay(250);
+        return {
+          userId: null,
+          regionId,
+          regionName: "청주시 오창읍",
+          income: { monthlyGrossIncome: 338, estimatedMonthlyNetIncome: 287 },
+          costs: { rent: 70, maintenanceFee: 8, food: 48, transportation: 24, telecom: 7, utilities: 10, otherLiving: 36, totalMonthlyCost: 203 },
+          policySupport: { included: true, monthlyAmount: 20 },
+          result: { monthlyBalance: 104, savingPossibleAmount: 73, initialRequiredAmount: 1208, rentBurdenRate: 24.4, stabilityLevel: "안정" },
+          cautions: ["백엔드 연결이 없어서 로컬 기준값으로 계산했습니다."],
+        };
+      },
+    );
+  },
+  async calculateCommute(condition: QuickCondition, regionId = DEFAULT_REGION_ID): Promise<CommuteSimulation> {
+    return withMockFallback(
+      () => request<CommuteSimulation>("/commute-simulations", {
+        method: "POST",
+        body: JSON.stringify({
+          regionId,
+          job: condition.job,
+          transport: { type: condition.transport, maxCommuteMinutes: 40 },
+        }),
+      }),
+      async () => {
+        await delay(250);
+        return {
+          userId: null,
+          regionId,
+          regionName: "청주시 오창읍",
+          job: condition.job,
+          origin: { name: "청주시 오창읍" },
+          destination: { name: "오창과학산업단지" },
+          transportType: condition.transport,
+          estimatedOneWayMinutes: 20,
+          estimatedRoundTripMinutes: 40,
+          maxCommuteMinutes: 40,
+          isCommutePossible: true,
+          monthlyTransportationCost: 24,
+          carNeed: "있으면 편리",
+          commuteLevel: "적합",
+          cautions: ["백엔드 연결이 없어서 로컬 기준값으로 계산했습니다."],
+        };
+      },
+    );
+  },
+  async chatWithAi(message: string, condition: QuickCondition, regionId = DEFAULT_REGION_ID): Promise<AiChatResponse> {
+    return withMockFallback(
+      () => request<AiChatResponse>("/ai/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message,
+          condition,
+          context: { regionIds: [regionId], policyIds: ["CB_HOUSING_001"] },
+        }),
+      }),
+      async () => {
+        await delay(250);
+        return {
+          answer: "백엔드 연결이 없어서 로컬 상담 응답을 표시합니다. 생활비와 교통 조건을 함께 비교해보는 것이 좋습니다.",
+          usedContext: { condition, regionIds: [regionId], policyIds: ["CB_HOUSING_001"] },
+          isMock: true,
+          caution: "로컬 fallback 응답입니다.",
+        };
       },
     );
   },
