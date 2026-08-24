@@ -14,6 +14,7 @@ export class RegionsService {
       averageRent: 58,
       averageMaintenanceFee: 8,
       averageCommute: 28,
+      transportScore: 85,
       carNeed: '있으면 편리',
       infrastructure: [
         '오창과학산업단지',
@@ -39,6 +40,7 @@ export class RegionsService {
       averageRent: 45,
       averageMaintenanceFee: 7,
       averageCommute: 22,
+      transportScore: 70,
       carNeed: '선택',
       infrastructure: ['충주역', '충주기업도시', '건국대병원', '대형마트'],
       jobKeywords: ['제조·생산', '사무·행정', '서비스', '창업'],
@@ -58,6 +60,7 @@ export class RegionsService {
       averageRent: 52,
       averageMaintenanceFee: 8,
       averageCommute: 24,
+      transportScore: 55,
       carNeed: '권장',
       infrastructure: [
         '충북혁신도시',
@@ -83,6 +86,7 @@ export class RegionsService {
       averageRent: 38,
       averageMaintenanceFee: 6,
       averageCommute: 30,
+      transportScore: 50,
       carNeed: '권장',
       infrastructure: ['옥천역', '대청호 생활권', '옥천군청', '전통시장'],
       jobKeywords: ['서비스', '농업', '사무·행정', '로컬창업'],
@@ -102,6 +106,7 @@ export class RegionsService {
       averageRent: 32,
       averageMaintenanceFee: 5,
       averageCommute: 35,
+      transportScore: 35,
       carNeed: '필요',
       infrastructure: [
         '괴산읍 생활권',
@@ -154,8 +159,17 @@ export class RegionsService {
       rent: region.averageRent,
       commute: region.averageCommute,
       carNeed: region.carNeed,
+      transportScore: region.transportScore,
+      commuteBasis: {
+        origin: region.name,
+        destination: region.infrastructure[0],
+        method: '백엔드 지역별 대표 생활권 기준 편도 예상시간',
+        caution:
+          '실시간 길찾기 결과가 아니며 실제 근무지, 시간대, 교통수단에 따라 달라질 수 있습니다.',
+      },
       infrastructure: region.infrastructure,
       policyCount: region.relatedPolicyIds.length,
+      relatedPolicyIds: region.relatedPolicyIds,
       image: region.image,
       imageSource: region.imageSource,
     };

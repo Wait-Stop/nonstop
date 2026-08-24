@@ -22,8 +22,16 @@ export interface RegionRecommendation {
   rent: number;
   commute: number;
   carNeed: string;
+  transportScore?: number;
+  commuteBasis?: {
+    origin: string;
+    destination: string;
+    method: string;
+    caution: string;
+  };
   infrastructure: string[];
   policyCount: number;
+  relatedPolicyIds?: string[];
   image: string;
   imageSource: string;
 }
