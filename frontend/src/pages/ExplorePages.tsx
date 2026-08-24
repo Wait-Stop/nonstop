@@ -16,6 +16,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { MUNICIPALITIES } from "../data/mockData";
+import { api } from "../services/api";
 
 export function RegionsPage() {
   return (
@@ -224,10 +225,7 @@ export function CommunityPage() {
   const [commentsByPost, setCommentsByPost] = useState<
     Record<string, string[]>
   >({});
-  const [userPosts, setUserPosts] = useState<string[][]>(() => {
-    const saved = localStorage.getItem("chungbuk-olgyeo-community-posts");
-    return saved ? (JSON.parse(saved) as string[][]) : [];
-  });
+  const [userPosts, setUserPosts] = useState<string[][]>([]);
   const allPosts = [COMMUNITY_NOTICE, ...userPosts];
   const normalizedCategory = category.replace(/\s/g, "").replace("게시판", "");
   const matchesCategory = (postCategory: string) => {
@@ -265,29 +263,44 @@ export function CommunityPage() {
       setDraft((current) => ({ ...current, category: "자유게시판" }));
     setWriterOpen(true);
   };
-  const submitPost = () => {
-    if (!draft.title.trim() || !draft.content.trim()) return;
+  const submitPost = async () => {
+  if (!draft.title.trim() || !draft.content.trim()) return;
+
+  try {
+    const created = await api.createCommunityPost({
+      category: draft.category,
+      title: draft.title.trim(),
+      content: draft.content.trim(),
+    });
+
     const next = [
       [
-        draft.category,
-        draft.title.trim(),
-        profile.name,
-        "0",
-        "0",
+        created.category,
+        created.title,
+        created.authorName,
+        String(created.viewCount),
+        String(created.commentCount),
         draft.content.trim(),
       ],
       ...userPosts,
     ];
+
     setUserPosts(next);
-    localStorage.setItem(
-      "chungbuk-olgyeo-community-posts",
-      JSON.stringify(next),
-    );
-    setDraft({ category: "정착후기", title: "", content: "" });
+
+    setDraft({
+      category: "정착후기",
+      title: "",
+      content: "",
+    });
+
     setWriterOpen(false);
     setCategory("전체글");
     setTab("home");
-  };
+  } catch (error) {
+    console.error("게시글 작성 실패:", error);
+    alert("게시글 작성에 실패했습니다.");
+  }
+};
   const activePost = allPosts.find((post) => post[1] === selectedPost);
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-8">
