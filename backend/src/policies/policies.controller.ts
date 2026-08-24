@@ -10,15 +10,20 @@ export class PoliciesController {
     return this.policiesService.findAll();
   }
 
+  @Get(':policyId/checklist')
+  getChecklist(@Param('policyId') policyId: string) {
+    return this.policiesService.getChecklist(policyId);
+  }
+
   @Get(':policyId')
   findOne(@Param('policyId') policyId: string) {
     return this.policiesService.findOne(policyId);
   }
 
   @Post('recommendations')
-recommend(@Body('condition') condition: Record<string, any>) {
-  return {
-    recommendedPolicies: this.policiesService.recommend(condition),
+  recommend(@Body('condition') condition: Record<string, any>) {
+    return {
+      recommendedPolicies: this.policiesService.recommend(condition),
     };
   }
 }

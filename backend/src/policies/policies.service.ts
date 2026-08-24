@@ -115,5 +115,53 @@ recommend(condition: Record<string, any> = {}) {
     .filter((item) => item.matchScore >= 55)
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, 5);
-}
+  }
+
+  getChecklist(policyId: string) {
+    const policy = policies.find((item) => item.id === policyId);
+
+    if (!policy) {
+      throw new NotFoundException('해당 정책 정보를 찾을 수 없습니다.');
+    }
+
+    const base = [
+      {
+        id: 'item_age',
+        section: '자격 조건',
+        label: '정책 대상 연령에 해당하는지 확인',
+        description: policy.eligibility,
+        required: true,
+        defaultChecked: false,
+      },
+      {
+        id: 'item_region',
+        section: '자격 조건',
+        label: `${policy.region} 거주 또는 전입 조건 확인`,
+        description:
+          '신청 기준일의 주민등록상 거주지 조건을 확인해야 합니다.',
+        required: true,
+        defaultChecked: false,
+      },
+    ];
+
+    const documents = policy.requiredDocuments.map((doc, index) => ({
+      id: `doc_${index + 1}`,
+      section: '필요 서류',
+      label: `${doc} 준비`,
+      description:
+        '원문 공고 기준으로 최신 양식과 발급일 조건을 확인하세요.',
+      required: true,
+      defaultChecked: false,
+    }));
+
+    return {
+      policyId: policy.id,
+      policyTitle: policy.title,
+      checklist: [...base, ...documents],
+      caution:
+        '정확한 신청 가능 여부와 제출 서류는 신청 시점의 원문 공고와 담당 기관을 반드시 확인해 주세요.',
+      sourceUrl: policy.sourceUrl,
+      lastChecked: policy.lastChecked,
+    };
+  }
 }

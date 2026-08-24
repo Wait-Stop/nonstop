@@ -41,7 +41,7 @@ export class UsersController {
 
     return this.usersService.updateMe(
       user.sub,
-      updateUserDto.name,
+      updateUserDto,
     );
   }
 
@@ -102,5 +102,20 @@ export class UsersController {
     const user = req['user'] as { sub: string };
 
     return this.usersService.deleteSavedPolicy(user.sub, policyId);
+  }
+  @Patch('me/policy-checklists/:policyId')
+  @UseGuards(JwtAuthGuard)
+  savePolicyChecklist(
+    @Req() req: Request,
+    @Param('policyId') policyId: string,
+    @Body('checkedItems') checkedItems: string[],
+  ) {
+    const user = req['user'] as { sub: string };
+
+    return this.usersService.savePolicyChecklist(
+      user.sub,
+      policyId,
+      checkedItems,
+    );
   }
 }
