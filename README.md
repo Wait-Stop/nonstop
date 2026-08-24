@@ -38,7 +38,25 @@
 
 ### Backend / AI
 
-백엔드와 AI는 별도 개발 영역으로 분리되어 있습니다. 현재 프론트엔드는 백엔드 MVP API를 호출하고, 백엔드는 AI FastAPI 서비스가 실행 중이면 실제 추천 결과를 사용합니다.
+#### Backend
+
+- Node.js 20
+- NestJS 11
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- JWT · bcrypt 기반 인증
+- class-validator 기반 요청 데이터 검증
+
+#### AI
+
+- Python
+- FastAPI
+- Uvicorn
+- 사용자 조건 기반 정책·지역 추천 로직
+- 추천 결과와 근거를 제공하는 설명 가능한 규칙 기반 점수 모델
+
+프론트엔드는 NestJS 백엔드 API를 호출하고, 백엔드는 별도로 실행되는 FastAPI 추천 서비스와 연동합니다. AI 서비스가 응답하지 않으면 백엔드의 규칙 기반 추천 로직으로 자동 전환합니다.
 
 ## 프로젝트 구조
 
