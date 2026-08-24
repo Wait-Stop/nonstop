@@ -13,6 +13,24 @@ export function RegionComparePage(){
   return <main className="mx-auto max-w-[1180px] px-6 py-9"><span className="text-xs font-bold text-brand">REGION COMPARE</span><h1 className="mt-2 text-3xl font-bold">지역 비교하기</h1><p className="mt-3 text-sm text-stone-500">비교할 지역을 2~3곳 선택하면 생활 조건을 한눈에 비교할 수 있어요.</p><section className="mt-6 rounded-2xl border border-stone-200 bg-white p-5"><div className="flex flex-wrap gap-2">{MUNICIPALITIES.map((region)=><button key={region.id} onClick={()=>toggle(region.id)} className={`rounded-lg border px-4 py-2 text-xs font-bold ${selected.includes(region.id)?"border-brand bg-brand text-white":"border-stone-200 text-stone-500"}`}>{region.name}</button>)}</div><p className="mt-3 text-[10px] text-stone-400">현재 {selected.length}개 지역 선택 · 최대 3개</p></section>{compared.length<2?<div className="mt-7 rounded-2xl bg-brand-light p-10 text-center text-sm font-bold text-brand">비교할 지역을 2곳 이상 선택해 주세요.</div>:<section className="mt-7 overflow-hidden rounded-2xl border border-stone-200 bg-white"><div className={`grid ${compared.length===2?"grid-cols-[150px_1fr_1fr]":"grid-cols-[150px_1fr_1fr_1fr]"}`}><div className="bg-stone-50 p-5"/>{compared.map((region)=><div key={region.id} className="border-l border-stone-100 p-4"><img src={region.image} alt={region.name} className="h-28 w-full rounded-xl object-cover"/><h2 className="mt-3 text-lg font-bold">{region.name}</h2><p className="text-[10px] text-brand">{region.type}</p></div>)}{[["지역 특징",(r:typeof MUNICIPALITIES[number])=>r.description],["주요 생활권",(r:typeof MUNICIPALITIES[number])=>r.highlights.join(" · ")],["예상 월세",(r:typeof MUNICIPALITIES[number])=>r.id==="cheongju"?"58만원":r.id==="chungju"?"45만원":"40만원대"],["교통 환경",(r:typeof MUNICIPALITIES[number])=>r.id==="cheongju"?"공항·버스 중심":r.id==="chungju"?"철도·버스 중심":"자가용 권장"],["추천 생활 유형",(r:typeof MUNICIPALITIES[number])=>r.type]].map(([label,getValue])=><Fragment key={String(label)}><div className="border-t border-stone-100 bg-stone-50 p-5 text-xs font-bold">{String(label)}</div>{compared.map((region)=><div key={`${String(label)}-${region.id}`} className="border-l border-t border-stone-100 p-5 text-xs leading-5 text-stone-600">{(getValue as (r:typeof region)=>string)(region)}</div>)}</Fragment>)}</div></section>}</main>
 }
 
+const COMMUNITY_NOTICE = [
+  "공지",
+  "[필독] 충북올겨 커뮤니티 이용규칙",
+  "운영자",
+  "-",
+  "0",
+  `충북올겨 커뮤니티는 충북 정착 경험과 지역 정보를 안전하게 나누는 공간입니다.
+
+1. 전화번호, 상세 주소, 직장·학교 등 개인을 특정할 수 있는 정보는 게시하지 마세요.
+2. 욕설, 조롱, 혐오 표현과 지역·성별·직업 등을 이유로 한 비하를 금지합니다.
+3. 정책, 생활비, 교통 정보는 가능한 경우 출처와 확인 날짜를 함께 적어주세요.
+4. 상업 광고, 반복 홍보, 금전 거래 유도 및 불법 중개 게시물은 제한됩니다.
+5. 직접 작성했거나 사용 허가를 받은 글과 이미지만 게시해 주세요.
+6. 운영규칙을 위반한 게시물은 검토 후 숨김·삭제되거나 작성이 제한될 수 있습니다.
+
+서로의 상황과 선택을 존중하며 유용한 충북 생활 정보를 나눠주세요.`,
+];
+
 export function CommunityPage(){
   const navigate=useNavigate();
   const {isLoggedIn,profile}=useAuth();
@@ -29,9 +47,10 @@ export function CommunityPage(){
     const saved=localStorage.getItem("chungbuk-olgyeo-community-posts");
     return saved?JSON.parse(saved) as string[][]:[];
   });
-  const allPosts=userPosts;
+  const allPosts=[COMMUNITY_NOTICE,...userPosts];
   const normalizedCategory=category.replace(/\s/g,"").replace("게시판","");
   const matchesCategory=(postCategory:string)=>{
+    if(postCategory==="공지")return true;
     if(category==="전체글")return true;
     if(category==="자유게시판")return ["자유게시판","일상"].includes(postCategory);
     return postCategory.replace(/\s/g,"")===normalizedCategory;
