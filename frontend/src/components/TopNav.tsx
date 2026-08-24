@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, CheckCheck, ChevronDown, LogOut, MessageSquareText, UserRound } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
 
@@ -21,6 +21,8 @@ const NOTIFICATIONS = [
 export default function TopNav() {
   const { isLoggedIn, profile, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const loginState = location.pathname === "/login" ? undefined : { from: `${location.pathname}${location.search}` };
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [readIds, setReadIds] = useState<number[]>([]);
@@ -83,7 +85,7 @@ export default function TopNav() {
                     })}
                   </div>
                 ) : (
-                  <div className="px-6 py-8 text-center"><Bell className="mx-auto text-stone-300" size={27}/><p className="mt-3 text-sm font-bold">로그인 후 알림을 확인하세요</p><p className="mt-1 text-[11px] leading-5 text-stone-400">커뮤니티 댓글과 관심 정책 소식을<br/>한곳에서 알려드려요.</p><Link to="/login" onClick={() => setNotificationOpen(false)} className="mt-4 inline-flex rounded-lg bg-brand px-5 py-2.5 text-xs font-bold text-white">로그인하기</Link></div>
+                  <div className="px-6 py-8 text-center"><Bell className="mx-auto text-stone-300" size={27}/><p className="mt-3 text-sm font-bold">로그인 후 알림을 확인하세요</p><p className="mt-1 text-[11px] leading-5 text-stone-400">커뮤니티 댓글과 관심 정책 소식을<br/>한곳에서 알려드려요.</p><Link to="/login" state={loginState} onClick={() => setNotificationOpen(false)} className="mt-4 inline-flex rounded-lg bg-brand px-5 py-2.5 text-xs font-bold text-white">로그인하기</Link></div>
                 )}
               </div>
             )}
@@ -94,7 +96,7 @@ export default function TopNav() {
               <button onClick={() => setLogoutOpen(true)} aria-label="로그아웃"><LogOut size={18} className="text-stone-400" /></button>
             </>
           ) : (
-            <Link to="/login" className="rounded-lg border border-brand px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand-light">로그인</Link>
+            <Link to="/login" state={loginState} className="rounded-lg border border-brand px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand-light">로그인</Link>
           )}
         </div>
       </div>

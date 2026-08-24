@@ -4,7 +4,7 @@
 
 사용자의 직업, 소득, 주거 예산, 이동수단과 선호 지역을 바탕으로 충북의 정착 후보지를 살펴보고 생활비, 출퇴근, 정책 정보를 한곳에서 확인하는 것을 목표로 합니다.
 
-> 현재 저장소는 개발 중인 프로젝트입니다. 화면에 표시되는 추천 결과, 정책, 회원정보와 커뮤니티 게시글 일부는 프론트엔드 개발을 위한 Mock Data입니다.
+> 현재 저장소는 개발 중인 프로젝트입니다. 추천과 정책 화면은 백엔드 MVP API를 우선 사용하며, 백엔드가 꺼진 로컬 UI 개발 상황에서는 일부 Mock Data로 fallback합니다.
 
 ## 주요 기능
 
@@ -38,7 +38,7 @@
 
 ### Backend / AI
 
-백엔드와 AI는 별도 개발 영역으로 분리되어 있습니다. 현재 프론트엔드는 Mock API와 Mock Data를 사용합니다.
+백엔드와 AI는 별도 개발 영역으로 분리되어 있습니다. 현재 프론트엔드는 백엔드 MVP API를 호출하고, 백엔드는 AI FastAPI 서비스가 실행 중이면 실제 추천 결과를 사용합니다.
 
 ## 프로젝트 구조
 
@@ -113,10 +113,9 @@ npm run dev
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080/api
-VITE_AI_API_BASE_URL=http://localhost:8000/api
 ```
 
-환경변수 이름과 서버 URL은 백엔드·AI 담당자와 합의한 뒤 변경할 수 있습니다.
+프론트엔드는 백엔드 API만 직접 호출합니다. AI 추천 서비스 주소는 백엔드 실행 환경에서 `AI_RECOMMENDATION_BASE_URL`로 설정합니다.
 
 ## 주요 라우트
 
@@ -146,7 +145,7 @@ VITE_AI_API_BASE_URL=http://localhost:8000/api
 frontend/src/services/api.ts
 ```
 
-현재는 이 파일이 Mock Data를 반환합니다. 실제 서버가 준비되면 페이지 컴포넌트를 직접 수정하기보다 `api.ts` 내부 요청 함수부터 교체합니다.
+현재는 이 파일이 백엔드 MVP API를 호출하고, 백엔드가 꺼져 있는 로컬 UI 개발 상황에서는 Mock Data로 fallback합니다. 실제 서버 URL이 바뀌면 페이지 컴포넌트보다 `api.ts`의 요청 기준 또는 환경변수부터 조정합니다.
 
 연동 규격 초안:
 
@@ -203,5 +202,5 @@ refactor: 추천 API 호출 로직 분리
 - 작업 전 최신 `develop`을 현재 브랜치에 반영합니다.
 - 기능과 관계없는 파일을 같은 커밋에 포함하지 않습니다.
 - `node_modules`, `dist`, `.env.local`은 커밋하지 않습니다.
-- 실제 API가 연결되기 전 Mock Data를 실제 정보로 오해하지 않도록 화면과 코드에 구분을 표시합니다.
+- Mock fallback 데이터가 실제 API 응답과 혼동되지 않도록 화면과 코드에 구분을 표시합니다.
 - PR 전 `npm run build`로 TypeScript와 프로덕션 빌드를 확인합니다.
