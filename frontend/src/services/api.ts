@@ -1,8 +1,9 @@
 import { MUNICIPALITIES, POLICIES, REGION_RECOMMENDATIONS } from "../data/mockData";
-import type { AiChatResponse, CommuteSimulation, CostSimulation, Policy, QuickCondition, RegionRecommendation } from "../types";
+import type { AiChatResponse, CommuteSimulation, CostSimulation, Policy, QuickCondition, RegionRecommendation, UserProfile } from "../types";
 
 const delay = (ms = 550) => new Promise((resolve) => window.setTimeout(resolve, ms));
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+const TOKEN_KEY = "chungbuk-olgyeo-token";
 const POLICY_ID_ALIASES: Record<string, string> = {
   CB_HOUSING_001: "youth-rent",
   CB_JOB_001: "job-settle",
@@ -12,10 +13,12 @@ const POLICY_ID_ALIASES: Record<string, string> = {
 const DEFAULT_REGION_ID = "cheongju";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem(TOKEN_KEY);
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   });
@@ -41,6 +44,44 @@ async function withMockFallback<T>(run: () => Promise<T>, fallback: () => Promis
  * Quick recommendations are intentionally returned without persistence.
  */
 export const api = {
+  async signup(email: string, password: string, name: string) {
+    return request<{ id: string; email: string; name: string }>("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({ email, password, name }),
+    });
+  },
+  async login(email: string, password: string) {
+    const result = await request<{ accessToken: string; user: { id: string; email: string; name: string } }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    localStorage.setItem(TOKEN_KEY, result.accessToken);
+    return result.user;
+  },
+  async getMyProfile(): Promise<Partial<UserProfile> & { email: string; name: string }> {
+    const user = await request<Record<string, unknown>>("/users/me");
+    return {
+      name: String(user.name || ""), email: String(user.email || ""),
+      age: user.age == null ? "" : String(user.age), gender: String(user.gender || ""),
+      currentRegion: String(user.currentRegion || user.current_region || ""), major: String(user.major || ""),
+      job: String(user.job || ""), salary: String(user.salary || ""), rent: String(user.rent || ""),
+      deposit: String(user.deposit || ""), transport: String(user.transport || ""),
+      preferredRegions: (user.preferredRegions || user.preferred_regions || []) as string[],
+      recommendRegion: Boolean(user.recommendRegion ?? user.recommend_region),
+    };
+  },
+  async updateMyProfile(profile: UserProfile) {
+    return request<Record<string, unknown>>("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: profile.name, age: Number.parseInt(profile.age, 10), gender: profile.gender,
+        currentRegion: profile.currentRegion, major: profile.major, job: profile.job,
+        salary: profile.salary, rent: profile.rent, deposit: profile.deposit,
+        transport: profile.transport, preferredRegions: profile.preferredRegions,
+        recommendRegion: profile.recommendRegion,
+      }),
+    });
+  },
   async getRecommendations(condition: QuickCondition, options: { persist: boolean }): Promise<RegionRecommendation[]> {
     return withMockFallback(
       async () => {

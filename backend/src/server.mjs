@@ -296,6 +296,13 @@ const policies = [
 ];
 
 const state = {
+  usersByEmail: new Map([["demo@chungbuk.test", {
+    id: "demo-user", email: "demo@chungbuk.test", password: "password", name: "리원",
+    age: 29, gender: "여성", currentRegion: "서울특별시", major: "공학계열", job: "IT·개발",
+    salary: "3,600~4,500만원", rent: "40~50만원", deposit: "1,000~3,000만원",
+    transport: "버스", preferredRegions: ["청주시"], recommendRegion: false,
+  }]]),
+  tokens: new Map([[DEMO_TOKEN, "demo@chungbuk.test"]]),
   savedRegionsByUser: new Map(),
   savedPoliciesByUser: new Map(),
   recommendationHistoryByUser: new Map(),
@@ -334,10 +341,9 @@ async function readJson(req) {
 
 function getUser(req) {
   const header = req.headers.authorization || "";
-  if (header === `Bearer ${DEMO_TOKEN}`) {
-    return { id: "demo-user", name: "리원", email: "demo@chungbuk.test" };
-  }
-  return null;
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const email = state.tokens.get(token);
+  return email ? state.usersByEmail.get(email) || null : null;
 }
 
 function requireUser(req) {
@@ -903,6 +909,26 @@ async function router(req, res) {
     return jsonResponse(res, 200, { status: "ok", service: "chungbuk-olgyeo-backend", time: new Date().toISOString() });
   }
 
+  if (req.method === "POST" && pathname === "/api/auth/signup") {
+    const body = await readJson(req);
+    if (!body.email || !/^\S+@\S+\.\S+$/.test(body.email)) return jsonResponse(res, 400, { message: "올바른 이메일 형식을 입력해주세요." });
+    if (!body.password || body.password.length < 6) return jsonResponse(res, 400, { message: "비밀번호는 6자 이상이어야 합니다." });
+    if (!body.name) return jsonResponse(res, 400, { message: "이름을 입력해주세요." });
+    if (state.usersByEmail.has(body.email)) return jsonResponse(res, 409, { message: "이미 가입된 이메일입니다." });
+    const user = { id: randomUUID(), email: body.email, password: body.password, name: body.name };
+    state.usersByEmail.set(body.email, user);
+    return jsonResponse(res, 201, { id: user.id, email: user.email, name: user.name });
+  }
+
+  if (req.method === "POST" && pathname === "/api/auth/login") {
+    const body = await readJson(req);
+    const user = state.usersByEmail.get(body.email);
+    if (!user || user.password !== body.password) return jsonResponse(res, 401, { message: "이메일 또는 비밀번호가 올바르지 않습니다." });
+    const accessToken = randomUUID();
+    state.tokens.set(accessToken, user.email);
+    return jsonResponse(res, 200, { accessToken, user: { id: user.id, email: user.email, name: user.name } });
+  }
+
   if (req.method === "GET" && pathname === "/api/regions") {
     const keyword = url.searchParams.get("keyword");
     const payload = regions.filter((region) => !keyword || `${region.area} ${region.name}`.includes(keyword)).map(regionToListItem);
@@ -976,6 +1002,17 @@ async function router(req, res) {
 
   if (parts[0] === "api" && parts[1] === "users" && parts[2] === "me") {
     const user = requireUser(req);
+
+    if (parts.length === 3 && req.method === "GET") {
+      const { password: _password, ...profile } = user;
+      return jsonResponse(res, 200, profile);
+    }
+    if (parts.length === 3 && req.method === "PATCH") {
+      const body = await readJson(req);
+      Object.assign(user, body, { email: user.email, id: user.id, password: user.password });
+      const { password: _password, ...profile } = user;
+      return jsonResponse(res, 200, profile);
+    }
 
     if (req.method === "GET" && parts[3] === "saved-regions") {
       return jsonResponse(res, 200, { savedRegions: getMapList(state.savedRegionsByUser, user.id) });

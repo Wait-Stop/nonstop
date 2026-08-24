@@ -98,7 +98,7 @@ export default function HomePage() {
               받을 수 있는 지원정책까지 순서대로 확인할 수 있습니다.
             </p>
             <Link to="/regions" className="flex shrink-0 items-center gap-2 border-b border-brand pb-1 text-xs font-bold text-brand">
-              충북 전체 지역 보기 <ArrowRight size={14} />
+              추천 대상 지역 보기 <ArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function HomePage() {
         <div className="grid border-b border-emerald-200/70 py-9 md:grid-cols-3">
           {[
             ["01", "조건을 알려주세요", "직업·소득·주거 예산·이동수단", BriefcaseBusiness],
-            ["02", "지역을 비교해보세요", "충북 11개 시·군의 생활 조건", MapPin],
+            ["02", "지역을 비교해보세요", "추천 대상 5개 지역의 생활 조건", MapPin],
             ["03", "생활을 준비하세요", "생활비·출퇴근·지원정책", Home],
           ].map(([number, title, description, Icon], index) => (
             <div key={String(number)} className={`relative flex gap-4 py-3 ${index ? "md:border-l md:border-emerald-200/70 md:pl-8" : ""} ${index < 2 ? "md:pr-8" : ""}`}>
@@ -143,7 +143,7 @@ export default function HomePage() {
 
             <div className="divide-y divide-stone-200">
               {[
-                [MapPin, "지역", "충북 시·군 살펴보기", "11개 시·군의 주거, 교통, 생활환경 정보를 확인합니다.", "/regions"],
+                [MapPin, "지역", "추천 지역 살펴보기", "AI가 지원하는 5개 지역의 주거, 교통, 생활환경 정보를 확인합니다.", "/regions"],
                 [Calculator, "생활", "생활비와 출퇴근 비교하기", "예상 주거비와 고정 지출, 이동 여건을 미리 계산합니다.", "/simulation/budget"],
                 [FileCheck2, "정책", "내 조건에 맞는 지원 찾기", "주거·취업·창업 등 이용 가능한 지원정책을 찾아봅니다.", "/policies"],
               ].map(([Icon, category, title, description, path]) => (
@@ -170,7 +170,7 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-wrap gap-x-8 gap-y-2 border-t border-stone-200 bg-[#FAFAF8] px-7 py-3 text-[10px] text-stone-500">
-            <span><strong className="mr-1.5 text-stone-700">지역 정보</strong>충북 11개 시·군</span>
+            <span><strong className="mr-1.5 text-stone-700">지역 정보</strong>추천 대상 5개 지역</span>
             <span><strong className="mr-1.5 text-stone-700">생활 도구</strong>생활비·출퇴근·하루 살기·지출</span>
             <span><strong className="mr-1.5 text-stone-700">지원 분야</strong>주거·취업·창업·귀농귀촌</span>
           </div>

@@ -47,6 +47,7 @@ const services = [
     command: npmCommand,
     args: ["--prefix", "frontend", "run", "dev"],
     env: process.env,
+    shell: isWindows,
   },
 ];
 
@@ -69,6 +70,7 @@ for (const service of services) {
     cwd: root,
     env: service.env,
     stdio: "inherit",
+    shell: service.shell || false,
   });
   children.push(child);
   child.on("error", (error) => {

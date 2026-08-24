@@ -1,37 +1,66 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { api } from "../services/api";
 import type { UserProfile } from "../types";
 
-const STORAGE_KEY = "chungbuk-olgyeo-auth";
+const TOKEN_KEY = "chungbuk-olgyeo-token";
+const PROFILE_KEY = "chungbuk-olgyeo-profile";
 
 const defaultProfile: UserProfile = {
-  name: "홍길동", email: "user@example.com", gender: "남성", currentRegion: "서울특별시",
-  age: "30대", major: "공학계열", job: "IT·개발", salary: "3,600~4,500만원",
-  rent: "60~80만원", deposit: "1,000~3,000만원", transport: "자가용", preferredRegions: ["청주시"], recommendRegion: false,
+  name: "", email: "", gender: "", currentRegion: "", age: "", major: "", job: "",
+  salary: "", rent: "", deposit: "", transport: "", preferredRegions: [], recommendRegion: false,
 };
 
 interface AuthValue {
   isLoggedIn: boolean;
   profile: UserProfile;
-  login: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, profile: UserProfile) => Promise<void>;
   logout: () => void;
-  updateProfile: (profile: UserProfile) => void;
+  updateProfile: (profile: UserProfile) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setLoggedIn] = useState(() => localStorage.getItem(STORAGE_KEY) === "true");
+  const [isLoggedIn, setLoggedIn] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)));
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem("chungbuk-olgyeo-profile");
-    return saved ? JSON.parse(saved) as UserProfile : defaultProfile;
+    const saved = localStorage.getItem(PROFILE_KEY);
+    return saved ? { ...defaultProfile, ...JSON.parse(saved) as UserProfile } : defaultProfile;
   });
+
+  const saveProfile = (next: UserProfile) => {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(next));
+    setProfile(next);
+  };
+
   const value = useMemo<AuthValue>(() => ({
     isLoggedIn,
     profile,
-    login: () => { localStorage.setItem(STORAGE_KEY, "true"); setLoggedIn(true); },
-    logout: () => { localStorage.removeItem(STORAGE_KEY); setLoggedIn(false); },
-    updateProfile: (next) => { localStorage.setItem("chungbuk-olgyeo-profile", JSON.stringify(next)); setProfile(next); },
+    login: async (email, password) => {
+      const user = await api.login(email, password);
+      const details = await api.getMyProfile().catch(() => user);
+      saveProfile({ ...defaultProfile, ...profile, ...details, email: user.email, name: user.name });
+      setLoggedIn(true);
+    },
+    signup: async (email, password, nextProfile) => {
+      await api.signup(email, password, nextProfile.name);
+      await api.login(email, password);
+      await api.updateMyProfile(nextProfile);
+      saveProfile(nextProfile);
+      setLoggedIn(true);
+    },
+    logout: () => {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(PROFILE_KEY);
+      setProfile(defaultProfile);
+      setLoggedIn(false);
+    },
+    updateProfile: async (next) => {
+      await api.updateMyProfile(next);
+      saveProfile(next);
+    },
   }), [isLoggedIn, profile]);
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
