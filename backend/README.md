@@ -20,14 +20,16 @@ npm --prefix backend start
 `POST /api/cost-simulations`는 공공 API 키가 있으면 실제 외부 데이터를 우선 사용하고, 키가 없거나 조회 결과가 없으면 백엔드 MVP 기준값으로 fallback합니다.
 
 ```bash
-DATA_GO_KR_SERVICE_KEY=공공데이터포털_일반_인증키 npm --prefix backend start
+DATA_GO_KR_SERVICE_KEY=공공데이터포털_Encoding_또는_Decoding_인증키 npm --prefix backend start
 ```
 
-- `DATA_GO_KR_SERVICE_KEY` 또는 `MOLIT_SERVICE_KEY`: 국토교통부 전월세 실거래가 OpenAPI 키입니다. 월세 평균 계산에 사용합니다.
+- `DATA_GO_KR_SERVICE_KEY` 또는 `MOLIT_SERVICE_KEY`: 국토교통부 전월세 실거래가 OpenAPI 키입니다. 월세 평균 계산에 사용합니다. 공공데이터포털의 Encoding/Decoding 인증키 모두 사용할 수 있습니다.
 - `KOSIS_LIVING_COSTS_URL`: KOSIS에서 URL 생성한 소비지출 통계 JSON 호출 URL입니다. `{KOSIS_API_KEY}` placeholder를 넣으면 실행 시 치환합니다.
 - `KOSIS_API_KEY`: KOSIS OpenAPI 인증키입니다.
 
 현재 바로 연결된 외부 데이터는 국토교통부 아파트/오피스텔/연립다세대/단독다가구 전월세 실거래가입니다. KOSIS 소비지출은 통계표마다 항목 코드가 달라서 KOSIS URL 생성 결과를 환경변수로 넣는 방식으로 연결합니다.
+
+`GET /api/cost-simulations/apt-trades?regionId=cheongju&dealMonth=202607`는 국토교통부 아파트 매매 실거래가 API를 조회합니다. 호출 endpoint는 `https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade`입니다. 이 데이터는 주택 매매가 참고용이며, 월세 계산에는 전월세 실거래가 API를 사용합니다.
 
 ## AI 추천 서비스 연동
 

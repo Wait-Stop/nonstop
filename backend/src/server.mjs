@@ -312,6 +312,87 @@ const state = {
   savedPoliciesByUser: new Map(),
   recommendationHistoryByUser: new Map(),
   checklistByUser: new Map(),
+  communityPosts: [
+    {
+      id: "community_notice_1",
+      category: "공지",
+      title: "충북올겨 커뮤니티 이용 안내",
+      content: "충북 정착 경험, 지역 질문, 정책 후기, 모임 정보를 안전하게 나누는 공간입니다. 개인정보와 확인되지 않은 정책 정보는 주의해서 작성해 주세요.",
+      author: { id: "admin", name: "운영자" },
+      viewCount: 2481,
+      createdAt: "2026-08-01T09:00:00.000Z",
+      updatedAt: null,
+    },
+    {
+      id: "community_post_1",
+      category: "정착후기",
+      title: "청주 오창으로 이사 온 지 6개월 됐어요",
+      content: "오창은 산업단지 출퇴근이 편하고 호수공원, 마트, 병원 접근성이 좋아서 처음 정착하기에 부담이 적었습니다. 대중교통만으로도 가능하지만 늦은 시간 이동은 차가 있으면 훨씬 편합니다.",
+      author: { id: "seed_user_1", name: "오창새내기" },
+      viewCount: 1284,
+      createdAt: "2026-08-18T11:20:00.000Z",
+      updatedAt: null,
+    },
+    {
+      id: "community_post_2",
+      category: "질문",
+      title: "충주에서 자가용 없이 생활하기 괜찮을까요?",
+      content: "충주역과 터미널 근처 생활권을 보고 있습니다. 직장은 연수동 근처인데 버스 이동만으로 충분한지 궁금합니다.",
+      author: { id: "seed_user_2", name: "충주고민중" },
+      viewCount: 896,
+      createdAt: "2026-08-19T04:40:00.000Z",
+      updatedAt: null,
+    },
+    {
+      id: "community_post_3",
+      category: "지역정보",
+      title: "제천 원룸 구할 때 확인하면 좋은 것들",
+      content: "제천은 역 주변과 대학가 분위기가 꽤 다릅니다. 겨울 난방비와 언덕 위치, 버스 배차를 꼭 같이 확인해보세요.",
+      author: { id: "seed_user_3", name: "의림지산책" },
+      viewCount: 742,
+      createdAt: "2026-08-20T08:10:00.000Z",
+      updatedAt: null,
+    },
+    {
+      id: "community_post_4",
+      category: "정책정보",
+      title: "청년 월세 지원 신청 후기 공유합니다",
+      content: "임대차계약서, 월세 납부 증빙, 소득 관련 서류를 미리 준비해두면 신청이 수월했습니다. 기준일은 공고마다 다르니 원문을 꼭 다시 확인하세요.",
+      author: { id: "seed_user_4", name: "정책알리미" },
+      viewCount: 1105,
+      createdAt: "2026-08-21T02:30:00.000Z",
+      updatedAt: null,
+    },
+  ],
+  communityCommentsByPost: new Map([
+    [
+      "community_notice_1",
+      [
+        {
+          id: "comment_notice_1",
+          postId: "community_notice_1",
+          content: "확인했습니다.",
+          author: { id: "seed_user_1", name: "오창새내기" },
+          createdAt: "2026-08-01T10:00:00.000Z",
+          updatedAt: null,
+        },
+      ],
+    ],
+    [
+      "community_post_1",
+      [
+        {
+          id: "comment_post_1_1",
+          postId: "community_post_1",
+          content: "오창 쪽 월세는 어느 정도로 보셨나요?",
+          author: { id: "seed_user_2", name: "충주고민중" },
+          createdAt: "2026-08-18T12:00:00.000Z",
+          updatedAt: null,
+        },
+      ],
+    ],
+  ]),
+  communityReactionsByPost: new Map(),
 };
 
 function jsonResponse(res, status, payload) {
@@ -914,6 +995,139 @@ function addUniqueSaved(list, key, data) {
   return { item: data, alreadySaved: false };
 }
 
+const communityCategoryAliases = {
+  전체글: [],
+  "정착 후기": ["정착후기"],
+  "지역 질문": ["질문"],
+  "지역 정보": ["지역정보"],
+  "정책 정보": ["정책정보"],
+  "모임·동행": ["모임"],
+  자유게시판: ["자유게시판", "일상"],
+};
+
+const communityCategories = ["정착후기", "질문", "지역정보", "정책정보", "모임", "자유게시판"];
+
+function getCommunityComments(postId) {
+  const comments = state.communityCommentsByPost.get(postId) || [];
+  state.communityCommentsByPost.set(postId, comments);
+  return comments;
+}
+
+function getCommunityReactions(postId) {
+  const reactions = state.communityReactionsByPost.get(postId) || new Set();
+  state.communityReactionsByPost.set(postId, reactions);
+  return reactions;
+}
+
+function communityListItem(post) {
+  return {
+    id: post.id,
+    category: post.category,
+    title: post.title,
+    excerpt: post.content.length > 120 ? `${post.content.slice(0, 120).trim()}...` : post.content,
+    author: post.author,
+    authorName: post.author.name,
+    viewCount: post.viewCount,
+    commentCount: getCommunityComments(post.id).length,
+    likeCount: getCommunityReactions(post.id).size,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+  };
+}
+
+function communityDetail(post) {
+  return {
+    ...communityListItem(post),
+    content: post.content,
+    comments: getCommunityComments(post.id).map((comment) => ({
+      ...comment,
+      authorName: comment.author.name,
+    })),
+  };
+}
+
+function findCommunityPost(postId) {
+  const post = state.communityPosts.find((item) => item.id === postId);
+  if (!post) {
+    const error = new Error("게시글을 찾을 수 없습니다.");
+    error.status = 404;
+    error.code = "COMMUNITY_POST_NOT_FOUND";
+    throw error;
+  }
+  return post;
+}
+
+function validateCommunityPostBody(body) {
+  const category = String(body.category || "").trim();
+  const title = String(body.title || "").trim();
+  const content = String(body.content || "").trim();
+  if (!communityCategories.includes(category)) {
+    const error = new Error("지원하지 않는 커뮤니티 게시판입니다.");
+    error.status = 400;
+    error.code = "INVALID_COMMUNITY_CATEGORY";
+    throw error;
+  }
+  if (title.length < 2 || title.length > 80) {
+    const error = new Error("제목은 2자 이상 80자 이하로 입력해주세요.");
+    error.status = 400;
+    error.code = "INVALID_COMMUNITY_TITLE";
+    throw error;
+  }
+  if (content.length < 5 || content.length > 3000) {
+    const error = new Error("내용은 5자 이상 3000자 이하로 입력해주세요.");
+    error.status = 400;
+    error.code = "INVALID_COMMUNITY_CONTENT";
+    throw error;
+  }
+  return { category, title, content };
+}
+
+function validateCommunityCommentBody(body) {
+  const content = String(body.content || "").trim();
+  if (!content || content.length > 500) {
+    const error = new Error("댓글은 1자 이상 500자 이하로 입력해주세요.");
+    error.status = 400;
+    error.code = "INVALID_COMMUNITY_COMMENT";
+    throw error;
+  }
+  return { content };
+}
+
+function toPositiveInteger(value, fallback) {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : fallback;
+}
+
+function filterCommunityPosts(searchParams) {
+  const category = searchParams.get("category") || "전체글";
+  const keyword = (searchParams.get("q") || "").trim().toLowerCase();
+  const tab = searchParams.get("tab") || "home";
+  const page = toPositiveInteger(searchParams.get("page"), 1);
+  const pageSize = Math.min(30, toPositiveInteger(searchParams.get("pageSize"), 10));
+  const categories = communityCategoryAliases[category] || (category === "전체글" ? [] : [category]);
+
+  const filtered = state.communityPosts
+    .filter((post) => !categories.length || categories.includes(post.category))
+    .filter((post) => !keyword || `${post.title} ${post.content} ${post.author.name}`.toLowerCase().includes(keyword))
+    .sort((a, b) => {
+      if (tab === "popular") return b.viewCount - a.viewCount || Date.parse(b.createdAt) - Date.parse(a.createdAt);
+      if (a.category === "공지" && b.category !== "공지") return -1;
+      if (a.category !== "공지" && b.category === "공지") return 1;
+      return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+    });
+
+  const total = filtered.length;
+  return {
+    posts: filtered.slice((page - 1) * pageSize, page * pageSize).map(communityListItem),
+    meta: {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    },
+  };
+}
+
 async function router(req, res) {
   const { url, parts, pathname } = parsePath(req);
   if (req.method === "OPTIONS") return jsonResponse(res, 204, {});
@@ -1011,6 +1225,59 @@ async function router(req, res) {
     const body = await readJson(req);
     if (!body.message) return jsonResponse(res, 400, { code: "INVALID_AI_CHAT_REQUEST", message: "질문 내용이 필요합니다." });
     return jsonResponse(res, 200, mockAiChat(body));
+  }
+
+  if (req.method === "GET" && pathname === "/api/community/posts") {
+    return jsonResponse(res, 200, filterCommunityPosts(url.searchParams));
+  }
+
+  if (req.method === "POST" && pathname === "/api/community/posts") {
+    const user = requireUser(req);
+    const body = validateCommunityPostBody(await readJson(req));
+    const post = {
+      id: `community_post_${randomUUID().slice(0, 8)}`,
+      category: body.category,
+      title: body.title,
+      content: body.content,
+      author: { id: user.id, name: user.name },
+      viewCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: null,
+    };
+    state.communityPosts.unshift(post);
+    return jsonResponse(res, 201, communityListItem(post));
+  }
+
+  if (req.method === "GET" && parts[0] === "api" && parts[1] === "community" && parts[2] === "posts" && parts[3] && !parts[4]) {
+    const post = findCommunityPost(parts[3]);
+    post.viewCount += 1;
+    return jsonResponse(res, 200, communityDetail(post));
+  }
+
+  if (req.method === "POST" && parts[0] === "api" && parts[1] === "community" && parts[2] === "posts" && parts[3] && parts[4] === "comments") {
+    const user = requireUser(req);
+    const post = findCommunityPost(parts[3]);
+    const body = validateCommunityCommentBody(await readJson(req));
+    const comment = {
+      id: `community_comment_${randomUUID().slice(0, 8)}`,
+      postId: post.id,
+      content: body.content,
+      author: { id: user.id, name: user.name },
+      createdAt: new Date().toISOString(),
+      updatedAt: null,
+    };
+    getCommunityComments(post.id).push(comment);
+    return jsonResponse(res, 201, { ...comment, authorName: comment.author.name });
+  }
+
+  if (req.method === "POST" && parts[0] === "api" && parts[1] === "community" && parts[2] === "posts" && parts[3] && parts[4] === "reactions") {
+    const user = requireUser(req);
+    const post = findCommunityPost(parts[3]);
+    const reactions = getCommunityReactions(post.id);
+    const liked = !reactions.has(user.id);
+    if (liked) reactions.add(user.id);
+    else reactions.delete(user.id);
+    return jsonResponse(res, 200, { postId: post.id, liked, likeCount: reactions.size });
   }
 
   if (parts[0] === "api" && parts[1] === "users" && parts[2] === "me") {

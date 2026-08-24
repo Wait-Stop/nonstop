@@ -20,6 +20,23 @@
 - `GET /api/users/me/saved-regions`
 - `POST /api/users/me/saved-regions`
 
+## 커뮤니티
+
+- `GET /api/community/posts`
+  - query: `category`, `q`, `tab=home|popular`, `page`, `pageSize`
+  - response: `{ posts, meta }`
+- `GET /api/community/posts/{postId}`
+  - 게시글 상세와 댓글 목록을 반환하고 조회수를 1 증가시킵니다.
+- `POST /api/community/posts`
+  - 로그인 필요
+  - body: `{ "category": "정착후기", "title": "...", "content": "..." }`
+- `POST /api/community/posts/{postId}/comments`
+  - 로그인 필요
+  - body: `{ "content": "..." }`
+- `POST /api/community/posts/{postId}/reactions`
+  - 로그인 필요
+  - 같은 사용자가 다시 호출하면 공감을 취소합니다.
+
 ## 간편 추천 저장 정책
 
 홈의 간편 추천은 로그인 여부와 관계없이 다음 요청 옵션을 사용합니다.

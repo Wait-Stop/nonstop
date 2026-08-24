@@ -10,6 +10,7 @@ import { RecommendationsModule } from './recommendations/recommendations.module'
 import { CostSimulationsModule } from './cost-simulations/cost-simulations.module';
 import { CommuteSimulationsModule } from './commute-simulations/commute-simulations.module';
 import { AiChatModule } from './ai-chat/ai-chat.module';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AiChatModule } from './ai-chat/ai-chat.module';
     CostSimulationsModule,
     CommuteSimulationsModule,
     AiChatModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

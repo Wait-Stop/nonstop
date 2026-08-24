@@ -51,6 +51,28 @@ interface ParsedRentDeal {
   deposit?: number;
 }
 
+export interface ParsedAptTrade {
+  apartmentName: string;
+  dealAmount: number;
+  exclusiveArea?: number;
+  floor?: number;
+  buildYear?: number;
+  dealDate: string;
+}
+
+export interface ApartmentTradesResponse {
+  regionId: string;
+  regionName: string;
+  lawdCode?: string;
+  dealMonth: string;
+  source: string;
+  status: 'missing-key' | 'external' | 'empty';
+  sampleCount: number;
+  averageDealAmount: number;
+  trades: ParsedAptTrade[];
+  cautions: string[];
+}
+
 @Injectable()
 export class CostSimulationsService {
   private readonly regions: RegionCostBaseline[] = [
@@ -120,6 +142,9 @@ export class CostSimulationsService {
     },
   ];
 
+  private readonly molitAptTradeEndpoint =
+    'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade';
+
   private toNumberRangeAverage(value: unknown, fallback: number) {
     if (typeof value === 'number') return value;
     if (!value || typeof value !== 'string') return fallback;
@@ -147,7 +172,16 @@ export class CostSimulationsService {
   }
 
   private getPublicDataServiceKey() {
-    return process.env.DATA_GO_KR_SERVICE_KEY || process.env.MOLIT_SERVICE_KEY;
+    const serviceKey =
+      process.env.DATA_GO_KR_SERVICE_KEY || process.env.MOLIT_SERVICE_KEY;
+
+    if (!serviceKey) return undefined;
+
+    try {
+      return decodeURIComponent(serviceKey.trim());
+    } catch {
+      return serviceKey.trim();
+    }
   }
 
   private latestDealMonths(count = 6) {
@@ -170,6 +204,13 @@ export class CostSimulationsService {
     if (typeof value !== 'string') return 0;
 
     return Number(value.replace(/[^\d.-]/g, '')) || 0;
+  }
+
+  private toApiString(value: unknown) {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+
+    return '';
   }
 
   private asArray<T>(value: T | T[] | undefined): T[] {
@@ -223,6 +264,74 @@ export class CostSimulationsService {
       .filter((item) => item.monthlyRent > 0);
   }
 
+  private parseAptTradeItemsFromJson(data: unknown): ParsedAptTrade[] {
+    const root = data as {
+      response?: {
+        body?: {
+          items?: {
+            item?: Array<Record<string, unknown>> | Record<string, unknown>;
+          };
+        };
+      };
+    };
+
+    const items = this.asArray(root.response?.body?.items?.item);
+
+    return items
+      .map((item) => {
+        const year = this.toApiString(item.dealYear ?? item['년']);
+        const month = this.toApiString(item.dealMonth ?? item['월']).padStart(
+          2,
+          '0',
+        );
+        const day = this.toApiString(item.dealDay ?? item['일']).padStart(
+          2,
+          '0',
+        );
+
+        return {
+          apartmentName: this.toApiString(item.aptNm ?? item['아파트']),
+          dealAmount: this.toApiNumber(item.dealAmount ?? item['거래금액']),
+          exclusiveArea: this.toApiNumber(item.excluUseAr ?? item['전용면적']),
+          floor: this.toApiNumber(item.floor ?? item['층']),
+          buildYear: this.toApiNumber(item.buildYear ?? item['건축년도']),
+          dealDate:
+            year && month && day ? `${year}-${month}-${day}` : '날짜 미상',
+        };
+      })
+      .filter((item) => item.apartmentName && item.dealAmount > 0);
+  }
+
+  private parseAptTradeItemsFromXml(xml: string): ParsedAptTrade[] {
+    const itemMatches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+
+    return itemMatches
+      .map((match) => {
+        const itemXml = match[1];
+        const read = (...names: string[]) => {
+          for (const name of names) {
+            const value = itemXml.match(new RegExp(`<${name}>(.*?)</${name}>`));
+            if (value?.[1]) return value[1];
+          }
+          return '';
+        };
+        const year = read('dealYear', '년');
+        const month = read('dealMonth', '월').padStart(2, '0');
+        const day = read('dealDay', '일').padStart(2, '0');
+
+        return {
+          apartmentName: read('aptNm', '아파트'),
+          dealAmount: this.toApiNumber(read('dealAmount', '거래금액')),
+          exclusiveArea: this.toApiNumber(read('excluUseAr', '전용면적')),
+          floor: this.toApiNumber(read('floor', '층')),
+          buildYear: this.toApiNumber(read('buildYear', '건축년도')),
+          dealDate:
+            year && month && day ? `${year}-${month}-${day}` : '날짜 미상',
+        };
+      })
+      .filter((item) => item.apartmentName && item.dealAmount > 0);
+  }
+
   private async fetchRentEndpoint(
     endpoint: { name: string; url: string },
     region: RegionCostBaseline,
@@ -246,6 +355,31 @@ export class CostSimulationsService {
       return this.parseRentItemsFromJson(JSON.parse(text) as unknown);
     } catch {
       return this.parseRentItemsFromXml(text);
+    }
+  }
+
+  private async fetchAptTrades(
+    region: RegionCostBaseline,
+    dealMonth: string,
+    serviceKey: string,
+  ): Promise<ParsedAptTrade[]> {
+    const url = new URL(this.molitAptTradeEndpoint);
+    url.searchParams.set('serviceKey', serviceKey);
+    url.searchParams.set('LAWD_CD', region.lawdCode);
+    url.searchParams.set('DEAL_YMD', dealMonth);
+    url.searchParams.set('numOfRows', '100');
+    url.searchParams.set('pageNo', '1');
+    url.searchParams.set('_type', 'json');
+
+    const response = await fetch(url);
+    if (!response.ok) return [];
+
+    const text = await response.text();
+
+    try {
+      return this.parseAptTradeItemsFromJson(JSON.parse(text) as unknown);
+    } catch {
+      return this.parseAptTradeItemsFromXml(text);
     }
   }
 
@@ -485,6 +619,63 @@ export class CostSimulationsService {
           : '공공데이터 API 키가 없거나 조회 결과가 없어 백엔드 기준값을 사용했습니다.',
       ],
       dataSources,
+    };
+  }
+
+  async getApartmentTrades(
+    regionId: string,
+    dealMonth?: string,
+  ): Promise<ApartmentTradesResponse> {
+    const region = this.regions.find((item) => item.id === regionId);
+
+    if (!region) {
+      throw new NotFoundException('해당 지역 정보를 찾을 수 없습니다.');
+    }
+
+    const serviceKey = this.getPublicDataServiceKey();
+    if (!serviceKey) {
+      return {
+        regionId: region.id,
+        regionName: region.name,
+        dealMonth: dealMonth || this.latestDealMonths(1)[0],
+        source: '국토교통부 아파트 매매 실거래가 OpenAPI',
+        status: 'missing-key',
+        sampleCount: 0,
+        averageDealAmount: 0,
+        trades: [],
+        cautions: [
+          'DATA_GO_KR_SERVICE_KEY 또는 MOLIT_SERVICE_KEY가 없어서 실거래가를 조회하지 않았습니다.',
+        ],
+      };
+    }
+
+    const targetDealMonth = dealMonth || this.latestDealMonths(1)[0];
+    const trades = await this.fetchAptTrades(
+      region,
+      targetDealMonth,
+      serviceKey,
+    ).catch((): ParsedAptTrade[] => []);
+
+    const averageDealAmount = trades.length
+      ? Math.round(
+          trades.reduce((sum, item) => sum + item.dealAmount, 0) /
+            trades.length,
+        )
+      : 0;
+
+    return {
+      regionId: region.id,
+      regionName: region.name,
+      lawdCode: region.lawdCode,
+      dealMonth: targetDealMonth,
+      source: '국토교통부 아파트 매매 실거래가 OpenAPI',
+      status: trades.length ? 'external' : 'empty',
+      sampleCount: trades.length,
+      averageDealAmount,
+      trades: trades.slice(0, 20),
+      cautions: [
+        '아파트 매매 실거래가는 월세 계산값이 아니라 주택 매매가 참고 데이터입니다.',
+      ],
     };
   }
 }
