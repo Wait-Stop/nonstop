@@ -9,7 +9,7 @@ export class CostSimulationsController {
   ) {}
 
   @Post()
-  calculate(@Body() body: CostSimulationRequest) {
+  async calculate(@Body() body: CostSimulationRequest) {
     return this.costSimulationsService.calculate(body);
   }
 }

@@ -95,6 +95,17 @@ export interface CostSimulation {
     stabilityLevel: string;
   };
   cautions: string[];
+  dataSources?: {
+    housing: {
+      source: string;
+      sampleCount: number;
+      status: "external" | "fallback";
+    };
+    livingCosts: {
+      source: string;
+      status: "external" | "fallback";
+    };
+  };
 }
 
 export interface CommuteSimulation {
