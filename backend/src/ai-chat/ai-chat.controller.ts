@@ -7,7 +7,7 @@ export class AiChatController {
   constructor(private readonly aiChatService: AiChatService) {}
 
   @Post('chat')
-  chat(@Body() body: AiChatRequest) {
+  async chat(@Body() body: AiChatRequest) {
     return this.aiChatService.chat(body);
   }
 }

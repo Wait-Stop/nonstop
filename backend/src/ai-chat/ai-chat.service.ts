@@ -1,11 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 
 export interface AiChatRequest {
   message?: string;
-  condition?: {
-    transport?: string;
-    [key: string]: unknown;
-  };
+  condition?: Record<string, unknown>;
   context?: {
     regionIds?: string[];
     policyIds?: string[];
@@ -13,48 +10,77 @@ export interface AiChatRequest {
   };
 }
 
+interface GeminiResponse {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  error?: { message?: string };
+}
+
 @Injectable()
 export class AiChatService {
-  chat(body: AiChatRequest) {
-    const message = body.message || '';
-    const condition = body.condition || {};
+  async chat(body: AiChatRequest) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new ServiceUnavailableException(
+        'AI 상담 설정이 완료되지 않았습니다. 관리자에게 GEMINI_API_KEY 설정을 요청해 주세요.',
+      );
+    }
+
+    const message = body.message?.trim();
+    if (!message) {
+      throw new ServiceUnavailableException('상담 질문을 입력해 주세요.');
+    }
+
+    const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
     const context = body.context || {};
+    const condition = body.condition || {};
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const regionIds = context.regionIds || [];
-    const policyIds = context.policyIds || [];
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{
+                text: '당신은 충북 정착을 고민하는 청년을 돕는 충북올겨 상담 도우미입니다. 제공된 사용자 조건과 지역·정책 식별자 범위 안에서 주거비, 교통, 일자리, 정책 확인 순서를 한국어로 간결하게 안내하세요. 확인되지 않은 정책 자격이나 금액을 확정적으로 말하지 말고 반드시 공식 공고 확인이 필요하다고 안내하세요. 개인정보를 추가로 요구하지 마세요.',
+              }],
+            },
+            contents: [{
+              role: 'user',
+              parts: [{
+                text: `사용자 조건: ${JSON.stringify(condition)}\n관련 지역: ${JSON.stringify(context.regionIds || [])}\n관련 정책: ${JSON.stringify(context.policyIds || [])}\n질문: ${message}`,
+              }],
+            }],
+            generationConfig: { temperature: 0.35, maxOutputTokens: 700 },
+          }),
+          signal: controller.signal,
+        },
+      );
+      const data = (await response.json()) as GeminiResponse;
+      if (!response.ok) throw new Error(data.error?.message || 'Gemini API 요청에 실패했습니다.');
+      const answer = data.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('\n').trim();
+      if (!answer) throw new Error('Gemini 응답 내용이 비어 있습니다.');
 
-    let answer =
-      '입력한 조건을 기준으로 지역의 주거비, 교통, 일자리와 관련 정책을 함께 비교해보는 것이 좋습니다.';
-
-    if (
-      message.includes('차') ||
-      message.includes('자가용') ||
-      condition.transport === '버스'
-    ) {
-      answer =
-        '차량이 없다면 대중교통 접근성과 생활 인프라가 모여 있는 지역을 우선 비교하는 것이 좋습니다. 청주와 충주처럼 중심 생활권이 형성된 지역은 상대적으로 대중교통 이용이 편리할 수 있습니다.';
+      return {
+        answer,
+        usedContext: { condition, regionIds: context.regionIds || [], policyIds: context.policyIds || [] },
+        isMock: false,
+        caution: 'AI 안내는 참고용입니다. 정책 자격과 금액은 신청 시점의 공식 공고를 확인해 주세요.',
+      };
+    } catch (error) {
+      throw new ServiceUnavailableException(
+        error instanceof Error && error.name !== 'AbortError'
+          ? `AI 상담을 불러오지 못했습니다: ${error.message}`
+          : 'AI 상담 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.',
+      );
+    } finally {
+      clearTimeout(timeout);
     }
-
-    if (message.includes('월세') || message.includes('주거')) {
-      answer =
-        '주거비를 중요하게 본다면 지역별 평균 월세뿐 아니라 관리비와 받을 수 있는 청년 주거지원 정책까지 함께 비교하는 것이 좋습니다.';
-    }
-
-    if (message.includes('취업') || message.includes('일자리')) {
-      answer =
-        '취업을 우선한다면 희망 직무와 지역의 주요 산업을 함께 비교하는 것이 좋습니다. 추천 결과와 일자리 지원 정책도 같이 확인해보세요.';
-    }
-
-    return {
-      answer,
-      usedContext: {
-        condition,
-        regionIds,
-        policyIds,
-      },
-      isMock: true,
-      caution:
-        '현재 AI 상담은 MVP용 mock 응답이며 실제 AI 모델의 분석 결과가 아닙니다.',
-    };
   }
 }

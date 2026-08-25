@@ -144,6 +144,13 @@ npm run dev:frontend
 VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
+AI 정착 상담에 Gemini를 사용하려면 백엔드 또는 Render 서비스에 다음 환경변수를 설정합니다. API 키는 프론트엔드 환경변수나 저장소에 커밋하지 않습니다.
+
+```env
+GEMINI_API_KEY=Google_AI_Studio에서_발급한_키
+GEMINI_MODEL=gemini-3.5-flash
+```
+
 프론트엔드는 백엔드 API만 직접 호출합니다. AI 추천 서비스 주소는 백엔드 실행 환경에서 `AI_RECOMMENDATION_BASE_URL`로 설정합니다.
 
 ## 주요 라우트

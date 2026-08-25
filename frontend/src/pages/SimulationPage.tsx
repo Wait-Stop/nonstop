@@ -3,6 +3,7 @@ import {
   Bot,
   BusFront,
   Calculator,
+  CheckCircle2,
   Clock3,
   Coffee,
   Home,
@@ -57,8 +58,8 @@ export function SimulationHubPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="text-xs font-bold text-brand">SETTLEMENT SIMULATION</span>
-          <h1 className="mt-2 text-3xl font-bold">정착 시뮬레이션</h1>
-          <p className="mt-2 text-sm text-stone-500">선택한 항목을 게임처럼 하나씩 진행하며 충북 생활을 미리 경험해보세요.</p>
+          <h1 className="mt-2 text-3xl font-bold">전체 정착 시뮬레이션</h1>
+          <p className="mt-2 text-sm text-stone-500">한 화면에서 출퇴근, 생활비, 하루 일정과 지출 결과를 확인하고 세부 항목을 선택해 살펴보세요.</p>
         </div>
         <Link to="/" className="rounded-lg border border-brand px-5 py-2.5 text-xs font-bold text-brand">항목 다시 선택</Link>
       </div>
@@ -114,6 +115,7 @@ export default function SimulationPage() {
   const [aiAnswer, setAiAnswer] = useState<AiChatResponse>();
   const [loading, setLoading] = useState(true);
   const [chatting, setChatting] = useState(false);
+  const [chatError, setChatError] = useState("");
 
   const info = INFO[type as keyof typeof INFO] || INFO.cost;
   const Icon = info.icon;
@@ -153,9 +155,15 @@ export default function SimulationPage() {
     if (!message) return;
 
     setChatting(true);
-    const answer = await api.chatWithAi(message, profile, regionId);
-    setAiAnswer(answer);
-    setChatting(false);
+    setChatError("");
+    try {
+      const answer = await api.chatWithAi(message, profile, regionId);
+      setAiAnswer(answer);
+    } catch (error) {
+      setChatError(error instanceof Error ? error.message : "AI 상담을 불러오지 못했습니다.");
+    } finally {
+      setChatting(false);
+    }
   };
 
   if (!isLoggedIn) return <LoginRequired />;
@@ -243,6 +251,29 @@ export default function SimulationPage() {
         ))}
       </section>
 
+      <section className="mt-7 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
+        <div className="rounded-2xl border border-stone-200 bg-white p-7">
+          <div className="flex items-end justify-between gap-3">
+            <div><p className="text-xs font-bold text-brand">DAILY COST</p><h2 className="mt-1 text-xl font-bold">하루 예상 지출</h2></div>
+            <span className="text-[10px] text-stone-400">월 비용을 30일 기준으로 환산한 참고값</span>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[["주거",cost?.costs.rent],["식비",cost?.costs.food],["교통",cost?.costs.transportation],["기타 생활",cost?.costs.otherLiving]].map(([label,value])=><div key={String(label)} className="rounded-xl bg-stone-50 p-4"><span className="text-[10px] text-stone-400">{String(label)}</span><b className="mt-2 block text-lg text-brand">{typeof value==="number"?`${Math.round(value/30*10000).toLocaleString("ko-KR")}원`:"계산 중"}</b></div>)}
+          </div>
+          <div className="mt-4 flex items-center justify-between rounded-xl bg-brand-light p-4"><span className="text-sm font-bold">하루 총 예상 지출</span><strong className="text-xl text-brand">{typeof cost?.costs.totalMonthlyCost==="number"?`${Math.round(cost.costs.totalMonthlyCost/30*10000).toLocaleString("ko-KR")}원`:"계산 중"}</strong></div>
+          <p className="mt-3 text-[10px] leading-5 text-stone-400">보증금과 이사비처럼 한 번에 필요한 비용은 하루 지출에서 제외되며, 개인 소비 습관에 따라 달라질 수 있습니다.</p>
+        </div>
+        <div className="rounded-2xl border border-stone-200 bg-white p-7">
+          <p className="text-xs font-bold text-brand">LIVING CHECK</p><h2 className="mt-1 text-xl font-bold">정착 전 확인할 점</h2>
+          <div className="mt-5 space-y-3">{[
+            `출퇴근 왕복 ${commute?.estimatedRoundTripMinutes??"-"}분이 장기적으로 가능한지 확인`,
+            `월 고정지출 ${formatMoney(cost?.costs.totalMonthlyCost)}과 예상 저축액 비교`,
+            `차량 필요도 ${commute?.carNeed||"계산 중"} 및 대체 교통수단 확인`,
+            `초기 필요 자금 ${formatMoney(cost?.result.initialRequiredAmount)} 마련 계획 확인`,
+          ].map((item)=><p key={item} className="flex gap-2 rounded-lg bg-stone-50 p-3 text-xs leading-5 text-stone-600"><CheckCircle2 size={15} className="mt-0.5 shrink-0 text-brand"/>{item}</p>)}</div>
+        </div>
+      </section>
+
       <section className="mt-7 rounded-2xl border border-stone-200 bg-white p-6">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-brand"><Bot size={20} /></span>
@@ -263,6 +294,7 @@ export default function SimulationPage() {
             {chatting ? "상담 중" : "질문하기"}
           </button>
         </form>
+        {chatError&&<p className="mt-4 rounded-lg bg-red-50 p-3 text-xs text-red-600">{chatError}</p>}
         {aiAnswer && (
           <div className="mt-5 rounded-xl bg-stone-50 p-4">
             <p className="text-sm leading-6 text-stone-700">{aiAnswer.answer}</p>

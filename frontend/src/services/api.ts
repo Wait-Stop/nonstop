@@ -257,24 +257,13 @@ export const api = {
     );
   },
   async chatWithAi(message: string, condition: QuickCondition, regionId = DEFAULT_REGION_ID): Promise<AiChatResponse> {
-    return withMockFallback(
-      () => request<AiChatResponse>("/ai/chat", {
-        method: "POST",
-        body: JSON.stringify({
-          message,
-          condition,
-          context: { regionIds: [regionId], policyIds: ["CB_HOUSING_001"] },
-        }),
+    return request<AiChatResponse>("/ai/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        message,
+        condition,
+        context: { regionIds: [regionId], policyIds: ["CB_HOUSING_001"] },
       }),
-      async () => {
-        await delay(250);
-        return {
-          answer: "백엔드 연결이 없어서 로컬 상담 응답을 표시합니다. 생활비와 교통 조건을 함께 비교해보는 것이 좋습니다.",
-          usedContext: { condition, regionIds: [regionId], policyIds: ["CB_HOUSING_001"] },
-          isMock: true,
-          caution: "로컬 fallback 응답입니다.",
-        };
-      },
-    );
+    });
   },
 };

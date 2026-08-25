@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
 
 const NAV_ITEMS = [
-  { label: "정착 시뮬레이션", items: [["전체 시뮬레이션", "/simulation"], ["출퇴근 시뮬레이션", "/simulation/commute"], ["생활비 시뮬레이션", "/simulation/budget"], ["하루 생활 시뮬레이션", "/simulation/cost"], ["지출 확인", "/simulation/spending"]] },
+  { label: "정착 시뮬레이션", items: [] },
   { label: "정책 찾기", items: [["맞춤 정책", "/policies"], ["주거 지원", "/policies?category=주거"], ["취업·창업 지원", "/policies?category=취업"]] },
   { label: "지역 알아보기", items: [["추천 지역", "/recommendations"], ["전체 지역 알아보기", "/regions"], ["지역 비교", "/regions/compare"]] },
   { label: "커뮤니티", items: [] },
@@ -34,7 +34,7 @@ export default function TopNav() {
           <Link to="/" aria-label="충북올겨 홈"><Logo /></Link>
           <nav className="hidden items-center gap-2 lg:flex">
             {NAV_ITEMS.map((nav) => nav.items.length === 0 ? (
-              <Link key={nav.label} to="/community" className={`flex h-[72px] items-center border-b-2 px-4 text-[14px] font-semibold transition-colors hover:text-brand ${isNavActive(nav.label) ? "border-brand text-brand" : "border-transparent text-stone-700"}`}>{nav.label}</Link>
+              <Link key={nav.label} to={nav.label === "정착 시뮬레이션" ? "/simulation" : "/community"} className={`flex h-[72px] items-center border-b-2 px-4 text-[14px] font-semibold transition-colors hover:text-brand ${isNavActive(nav.label) ? "border-brand text-brand" : "border-transparent text-stone-700"}`}>{nav.label}</Link>
             ) : (
               <div key={nav.label} className="group relative">
                 <Link to={nav.label === "정착 시뮬레이션" ? "/simulation" : nav.label === "정책 찾기" ? "/policies" : nav.label === "지역 알아보기" ? "/regions" : "/mypage"} className={`flex h-[72px] items-center gap-1 border-b-2 px-4 text-[14px] font-semibold transition-colors hover:text-brand ${isNavActive(nav.label) ? "border-brand text-brand" : "border-transparent text-stone-700"}`}>
