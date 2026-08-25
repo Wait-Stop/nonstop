@@ -9,18 +9,22 @@ import {
   MapPin,
   Wallet,
 } from "lucide-react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import type { Policy } from "../types";
 import { useAuth } from "../context/AuthContext";
+import ResultNoticeModal from "../components/ResultNoticeModal";
 
 export function PoliciesPage() {
   const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const category = params.get("category");
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [saveNoticeOpen, setSaveNoticeOpen] = useState(false);
+  const [saveError, setSaveError] = useState("");
   useEffect(() => {
     setLoading(true);
     api.getPolicies().then((items) => {
@@ -33,9 +37,9 @@ export function PoliciesPage() {
     api.getSavedPolicies().then((items) => setSavedIds(new Set(items.map((item) => item.policyId)))).catch(() => undefined);
   }, [isLoggedIn]);
   const savePolicy = async (policyId: string) => {
-    if (!isLoggedIn) { window.alert("로그인 후 정책을 저장할 수 있습니다."); return; }
-    await api.savePolicy(policyId);
-    setSavedIds((current) => new Set(current).add(policyId));
+    if (!isLoggedIn) { navigate("/login", { state: { from: "/policies" } }); return; }
+    try { setSaveError(""); await api.savePolicy(policyId); setSavedIds((current) => new Set(current).add(policyId)); setSaveNoticeOpen(true); }
+    catch(error) { setSaveError(error instanceof Error?error.message:"정책을 저장하지 못했습니다."); }
   };
   const items = category
     ? policies.filter((policy) => policy.category.includes(category))
@@ -65,6 +69,7 @@ export function PoliciesPage() {
           ),
         )}
       </div>
+      {saveError&&<p className="mt-4 rounded-lg bg-red-50 p-3 text-xs text-red-600">{saveError}</p>}
       {loading ? (
         <div className="mt-10 rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
           정책 정보를 불러오는 중입니다.
@@ -112,16 +117,20 @@ export function PoliciesPage() {
           ))}
         </section>
       )}
+      <ResultNoticeModal open={saveNoticeOpen} title="정책이 저장되었습니다." description="저장한 정책에서 다시 확인할 수 있습니다." linkLabel="저장한 정책 보기" linkTo="/mypage/saved" onClose={()=>setSaveNoticeOpen(false)}/>
     </main>
   );
 }
 
 export function PolicyDetailPage() {
   const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
   const { id } = useParams();
   const [policy, setPolicy] = useState<Policy>();
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [saveNoticeOpen, setSaveNoticeOpen] = useState(false);
+  const [saveError, setSaveError] = useState("");
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -196,9 +205,10 @@ export function PolicyDetailPage() {
             </ol>
           )}
           <div className="mt-6 flex flex-wrap gap-2">
-            <a href={policy.applyUrl || policy.sourceUrl || "#"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white">공식 안내 페이지로 이동<ExternalLink size={15} /></a>
-            <button onClick={async()=>{if(!isLoggedIn){window.alert("로그인 후 정책을 저장할 수 있습니다.");return;}await api.savePolicy(policy.id);setSaved(true);}} disabled={saved} className="inline-flex items-center gap-2 rounded-lg border border-brand px-6 py-3 text-sm font-bold text-brand disabled:border-stone-300 disabled:text-stone-400"><Bookmark size={15}/>{saved?"저장됨":"정책 저장하기"}</button>
+            {(policy.applyUrl||policy.sourceUrl)?<a href={policy.applyUrl || policy.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white">공식 안내 페이지로 이동<ExternalLink size={15} /></a>:<span className="inline-flex items-center rounded-lg bg-stone-100 px-6 py-3 text-sm text-stone-500">공식 공고 주소 확인 중</span>}
+            <button onClick={async()=>{if(!isLoggedIn){navigate("/login",{state:{from:`/policies/${policy.id}`}});return;}try{setSaveError("");await api.savePolicy(policy.id);setSaved(true);setSaveNoticeOpen(true);}catch(error){setSaveError(error instanceof Error?error.message:"정책을 저장하지 못했습니다.");}}} disabled={saved} className="inline-flex items-center gap-2 rounded-lg border border-brand px-6 py-3 text-sm font-bold text-brand disabled:border-stone-300 disabled:text-stone-400"><Bookmark size={15}/>{saved?"저장됨":"정책 저장하기"}</button>
           </div>
+          {saveError&&<p className="mt-3 rounded-lg bg-red-50 p-3 text-xs text-red-600">{saveError}</p>}
           {policy.caution && (
             <p className="mt-4 text-[11px] leading-5 text-stone-400">
               {policy.caution}
@@ -206,6 +216,7 @@ export function PolicyDetailPage() {
           )}
         </div>
       </section>
+      <ResultNoticeModal open={saveNoticeOpen} title="정책이 저장되었습니다." description="저장한 정책에서 다시 확인할 수 있습니다." linkLabel="저장한 정책 보기" linkTo="/mypage/saved" onClose={()=>setSaveNoticeOpen(false)}/>
     </main>
   );
 }

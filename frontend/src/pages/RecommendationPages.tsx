@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import LoginRequired from "../components/LoginRequired";
+import ResultNoticeModal from "../components/ResultNoticeModal";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
 import type { Policy, QuickCondition, RegionRecommendation } from "../types";
@@ -305,6 +306,8 @@ export function RegionDetailPage() {
     "commute" | "car" | "policies" | null
   >(null);
   const [saved, setSaved] = useState(false);
+  const [saveNoticeOpen, setSaveNoticeOpen] = useState(false);
+  const [saveError, setSaveError] = useState("");
   useEffect(() => {
     let active = true;
     setRelatedPolicies([]);
@@ -513,11 +516,13 @@ export function RegionDetailPage() {
         >
           이 지역에서 하루 살아보기
         </Link>
-        <button onClick={async()=>{await api.saveRegion(region.id,region.score);setSaved(true);}} disabled={saved} className="flex items-center gap-2 rounded-lg border border-brand px-6 text-sm font-bold text-brand disabled:border-stone-300 disabled:text-stone-400">
+        <button onClick={async()=>{try{setSaveError("");await api.saveRegion(region.id,region.score);setSaved(true);setSaveNoticeOpen(true);}catch(error){setSaveError(error instanceof Error?error.message:"지역을 저장하지 못했습니다.");}}} disabled={saved} className="flex items-center gap-2 rounded-lg border border-brand px-6 text-sm font-bold text-brand disabled:border-stone-300 disabled:text-stone-400">
           <Save size={15} />
           {saved?"저장됨":"지역 저장"}
         </button>
       </div>
+      {saveError&&<p className="mt-3 rounded-lg bg-red-50 p-3 text-center text-xs text-red-600">{saveError}</p>}
+      <ResultNoticeModal open={saveNoticeOpen} title="결과가 저장되었습니다." description="저장한 지역에서 해당 지역과 추천 점수를 확인할 수 있습니다." linkLabel="저장한 지역 보기" linkTo="/mypage/saved" onClose={()=>setSaveNoticeOpen(false)}/>
       {evidenceOpen && (
         <div
           className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 px-5"
