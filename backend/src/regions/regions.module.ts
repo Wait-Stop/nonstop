@@ -5,5 +5,6 @@ import { RegionsService } from './regions.service';
 @Module({
   controllers: [RegionsController],
   providers: [RegionsService],
+  exports: [RegionsService],
 })
 export class RegionsModule {}

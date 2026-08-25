@@ -136,6 +136,24 @@ export class RegionsService {
     };
   }
 
+  getKnowledgeDocuments() {
+    return this.regions.map((region) => ({
+      id: region.id,
+      name: region.name,
+      area: region.area,
+      type: region.type,
+      description: region.description,
+      averageRent: region.averageRent,
+      averageMaintenanceFee: region.averageMaintenanceFee,
+      averageCommute: region.averageCommute,
+      transportScore: region.transportScore,
+      carNeed: region.carNeed,
+      infrastructure: region.infrastructure,
+      jobKeywords: region.jobKeywords,
+      relatedPolicyIds: region.relatedPolicyIds,
+    }));
+  }
+
   findOne(regionId: string) {
     const region = this.regions.find(
       (item) => item.id === regionId || item.area === regionId,
