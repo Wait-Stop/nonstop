@@ -117,15 +117,7 @@ export default function SimulationPage() {
 
   return (
     <main className="mx-auto max-w-[1100px] px-6 py-9">
-      <div className="flex items-center gap-4">
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white"><Icon size={27} /></span>
-        <div>
-          <h1 className="text-2xl font-bold">{info.title}</h1>
-          <p className="mt-1 text-sm text-stone-500">{info.description}</p>
-        </div>
-      </div>
-
-      <section className="relative mt-7 h-[300px] overflow-hidden rounded-2xl">
+      <section className="relative h-[320px] overflow-hidden rounded-2xl">
         <img src={heroRegion.image} alt={`${heroRegion.area} 정착 시뮬레이션 배경`} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-950/55 to-transparent" />
         <div className="absolute inset-0 flex items-center p-8 text-white md:p-10">
@@ -137,6 +129,14 @@ export default function SimulationPage() {
         </div>
         <a href={heroRegion.imageSource} target="_blank" rel="noreferrer" className="absolute bottom-4 right-5 text-[9px] text-white/70 underline">사진 출처</a>
       </section>
+
+      <div className="mt-7 flex items-center gap-4">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white"><Icon size={27} /></span>
+        <div>
+          <h1 className="text-2xl font-bold">{info.title}</h1>
+          <p className="mt-1 text-sm text-stone-500">{info.description}</p>
+        </div>
+      </div>
 
       <nav className="mt-6 flex flex-wrap gap-2 rounded-xl border border-stone-200 bg-white p-3 text-xs font-bold text-stone-600">
         {[['출퇴근', 'commute-section'], ['생활비', 'cost-section'], ['하루 일정', 'day-section'], ['AI 상담', 'ai-section']].map(([label,target])=><a key={target} href={`#${target}`} className="rounded-lg px-4 py-2 hover:bg-brand-light hover:text-brand">{label}</a>)}
