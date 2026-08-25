@@ -104,7 +104,7 @@ export default function SimulationPage() {
     setChatting(true);
     setChatError("");
     try {
-      const answer = await api.chatWithAi(message, profile, regionId);
+      const answer = await api.chatWithAi(message, profile, regionId, { commute, cost });
       setAiAnswer(answer);
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "AI 상담을 불러오지 못했습니다.");

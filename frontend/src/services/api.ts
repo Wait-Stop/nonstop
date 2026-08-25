@@ -256,13 +256,28 @@ export const api = {
       },
     );
   },
-  async chatWithAi(message: string, condition: QuickCondition, regionId = DEFAULT_REGION_ID): Promise<AiChatResponse> {
+  async chatWithAi(message: string, condition: QuickCondition, regionId = DEFAULT_REGION_ID, simulation?: { commute?: CommuteSimulation; cost?: CostSimulation }): Promise<AiChatResponse> {
+    const asksAboutPolicy = /정책|지원|혜택|신청|자격/.test(message);
     return request<AiChatResponse>("/ai/chat", {
       method: "POST",
       body: JSON.stringify({
         message,
         condition,
-        context: { regionIds: [regionId], policyIds: ["CB_HOUSING_001"] },
+        context: {
+          regionIds: [regionId],
+          policyIds: asksAboutPolicy ? ["CB_HOUSING_001"] : [],
+          commute: simulation?.commute ? {
+            transportType: simulation.commute.transportType,
+            oneWayMinutes: simulation.commute.estimatedOneWayMinutes,
+            roundTripMinutes: simulation.commute.estimatedRoundTripMinutes,
+            carNeed: simulation.commute.carNeed,
+          } : undefined,
+          cost: simulation?.cost ? {
+            totalMonthlyCost: simulation.cost.costs.totalMonthlyCost,
+            monthlyBalance: simulation.cost.result.monthlyBalance,
+            savingPossibleAmount: simulation.cost.result.savingPossibleAmount,
+          } : undefined,
+        },
       }),
     });
   },
