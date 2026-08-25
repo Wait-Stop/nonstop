@@ -4,6 +4,8 @@ import type { AiChatResponse, CommuteSimulation, CommunityComment, CommunityPost
 const delay = (ms = 550) => new Promise((resolve) => window.setTimeout(resolve, ms));
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 const TOKEN_KEY = "chungbuk-olgyeo-token";
+const PROFILE_KEY = "chungbuk-olgyeo-profile";
+export const AUTH_EXPIRED_EVENT = "chungbuk-olgyeo-auth-expired";
 const POLICY_ID_ALIASES: Record<string, string> = {
   CB_HOUSING_001: "youth-rent",
   CB_JOB_001: "job-settle",
@@ -24,6 +26,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
   const data = await response.json();
   if (!response.ok) {
+    if (response.status === 401 && token) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(PROFILE_KEY);
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+      throw new Error("로그인 시간이 만료되었습니다. 다시 로그인해 주세요.");
+    }
     throw new Error(data?.message || `${options.method || "GET"} ${path} failed`);
   }
   return data as T;

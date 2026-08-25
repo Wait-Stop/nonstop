@@ -10,7 +10,8 @@ import { PrismaModule } from '../prisma/prisma.module';
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: '1h',
+        // 재로그인을 지나치게 자주 요구하지 않도록 로그인 상태를 7일간 유지합니다.
+        expiresIn: '7d',
       },
     }),
   ],

@@ -11,7 +11,7 @@ import { UserRecommendationsController } from './user-recommendations.controller
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: '1h',
+        expiresIn: '7d',
       },
     }),
   ],

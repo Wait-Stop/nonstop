@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api } from "../services/api";
+import { api, AUTH_EXPIRED_EVENT } from "../services/api";
 import type { UserProfile } from "../types";
 
 const TOKEN_KEY = "chungbuk-olgyeo-token";
@@ -32,6 +32,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(next));
     setProfile(next);
   };
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setProfile(defaultProfile);
+      setLoggedIn(false);
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn || profile.id) return;
