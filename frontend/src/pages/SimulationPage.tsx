@@ -15,12 +15,12 @@ import {
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import LoginRequired from "../components/LoginRequired";
 import { useAuth } from "../context/AuthContext";
 import { REGION_RECOMMENDATIONS } from "../data/mockData";
 import { api } from "../services/api";
-import type { AiChatResponse, CommuteSimulation, CostSimulation, QuickCondition, SimulationType } from "../types";
+import type { AiChatResponse, CommuteSimulation, CostSimulation, QuickCondition } from "../types";
 
 const INFO = {
   commute: { title: "출퇴근 시뮬레이션", icon: BusFront, description: "선택 지역에서 직장까지의 이동 시간과 교통비를 계산합니다." },
@@ -50,66 +50,6 @@ function getRegionId(condition: QuickCondition) {
 
 function formatMoney(value?: number) {
   return typeof value === "number" ? `${value.toLocaleString("ko-KR")}만원` : "계산 중";
-}
-
-export function SimulationHubPage() {
-  const { isLoggedIn } = useAuth();
-  const location = useLocation();
-  const selected = ((location.state as { selected?: SimulationType[] } | null)?.selected || Object.keys(INFO)) as SimulationType[];
-
-  if (!isLoggedIn) return <LoginRequired />;
-
-  return (
-    <main className="mx-auto max-w-[1140px] px-6 py-9">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold text-brand">SETTLEMENT SIMULATION</span>
-          <h1 className="mt-2 text-3xl font-bold">전체 정착 시뮬레이션</h1>
-          <p className="mt-2 text-sm text-stone-500">한 화면에서 출퇴근, 생활비, 하루 일정과 지출 결과를 확인하고 세부 항목을 선택해 살펴보세요.</p>
-        </div>
-        <Link to="/" className="rounded-lg border border-brand px-5 py-2.5 text-xs font-bold text-brand">항목 다시 선택</Link>
-      </div>
-
-      <section className="relative mt-7 h-[270px] overflow-hidden rounded-2xl">
-        <img src={REGION_RECOMMENDATIONS[0].image} alt="청주 지역 시뮬레이션 배경" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/85 to-emerald-900/30" />
-        <div className="absolute inset-0 flex items-center p-9 text-white">
-          <div>
-            <span className="rounded-full bg-white/15 px-3 py-1 text-[10px]">현재 플레이 지역</span>
-            <h2 className="mt-4 text-3xl font-bold">청주시 오창읍에서<br />새로운 하루 시작하기</h2>
-            <p className="mt-3 text-xs text-white/70">각 미션을 완료하면 예상 생활비와 정착 적합도가 계산됩니다.</p>
-          </div>
-          <div className="ml-auto hidden grid-cols-3 gap-3 md:grid">
-            {[["집", "07:30"], ["회사", "08:40"], ["공원", "19:20"]].map(([place, time]) => (
-              <div key={place} className="flex h-24 w-24 flex-col items-center justify-center rounded-2xl border border-white/30 bg-white/15 backdrop-blur">
-                <b className="text-sm">{place}</b>
-                <span className="mt-1 text-[10px] text-white/70">{time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="mt-7 grid gap-4 md:grid-cols-2">
-        {selected.map((type, index) => {
-          const item = INFO[type];
-          const ItemIcon = item.icon;
-
-          return (
-            <Link to={`/simulation/${type}`} key={type} className="group flex items-center gap-5 rounded-2xl border border-stone-200 bg-white p-6 transition hover:border-brand hover:shadow-card">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-brand"><ItemIcon size={25} /></span>
-              <div>
-                <span className="text-[10px] font-bold text-brand">MISSION {index + 1}</span>
-                <h2 className="mt-1 text-lg font-bold">{item.title}</h2>
-                <p className="mt-1 text-xs text-stone-400">{item.description}</p>
-              </div>
-              <span className="ml-auto text-xl text-stone-300 group-hover:text-brand">→</span>
-            </Link>
-          );
-        })}
-      </div>
-    </main>
-  );
 }
 
 export default function SimulationPage() {
