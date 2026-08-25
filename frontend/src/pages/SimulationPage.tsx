@@ -66,6 +66,7 @@ export default function SimulationPage() {
   const info = type ? INFO[type as keyof typeof INFO] || OVERALL_INFO : OVERALL_INFO;
   const Icon = info.icon;
   const regionId = useMemo(() => getRegionId(profile), [profile]);
+  const heroRegion = REGION_RECOMMENDATIONS.find((region) => region.id === regionId) || REGION_RECOMMENDATIONS[0];
 
   useEffect(() => {
     let active = true;
@@ -123,6 +124,19 @@ export default function SimulationPage() {
           <p className="mt-1 text-sm text-stone-500">{info.description}</p>
         </div>
       </div>
+
+      <section className="relative mt-7 h-[300px] overflow-hidden rounded-2xl">
+        <img src={heroRegion.image} alt={`${heroRegion.area} 정착 시뮬레이션 배경`} className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-950/55 to-transparent" />
+        <div className="absolute inset-0 flex items-center p-8 text-white md:p-10">
+          <div>
+            <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-bold backdrop-blur">현재 시뮬레이션 지역</span>
+            <h2 className="mt-4 text-3xl font-bold leading-tight">{cost?.regionName || heroRegion.name}에서<br/>새로운 하루 미리 보기</h2>
+            <p className="mt-3 max-w-lg text-xs leading-5 text-white/75">회원정보에 입력한 주거, 직업과 이동 조건을 바탕으로 출퇴근 시간과 생활비를 계산합니다.</p>
+          </div>
+        </div>
+        <a href={heroRegion.imageSource} target="_blank" rel="noreferrer" className="absolute bottom-4 right-5 text-[9px] text-white/70 underline">사진 출처</a>
+      </section>
 
       <nav className="mt-6 flex flex-wrap gap-2 rounded-xl border border-stone-200 bg-white p-3 text-xs font-bold text-stone-600">
         {[['출퇴근', 'commute-section'], ['생활비', 'cost-section'], ['하루 일정', 'day-section'], ['AI 상담', 'ai-section']].map(([label,target])=><a key={target} href={`#${target}`} className="rounded-lg px-4 py-2 hover:bg-brand-light hover:text-brand">{label}</a>)}
