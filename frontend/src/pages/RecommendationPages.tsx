@@ -157,11 +157,9 @@ export function RecommendationsPage() {
     condition?: QuickCondition;
     persist?: boolean;
   } | null;
+  const savedCondition = localStorage.getItem("chungbuk-olgyeo-quick-condition");
+  const condition = state?.condition || (savedCondition ? JSON.parse(savedCondition) as QuickCondition : fallbackCondition);
   useEffect(() => {
-    const saved = localStorage.getItem("chungbuk-olgyeo-quick-condition");
-    const condition =
-      state?.condition ||
-      (saved ? (JSON.parse(saved) as QuickCondition) : fallbackCondition);
     api.getRecommendations(condition, { persist: false }).then((data) => {
       setItems(data);
       setLoading(false);
@@ -284,6 +282,7 @@ export function RecommendationsPage() {
               </div>
               <Link
                 to={`/regions/${region.id}`}
+                state={{ recommendation: region, condition }}
                 className="mt-5 block rounded-lg bg-brand py-2.5 text-center text-sm font-bold text-white"
               >
                 상세 보기
@@ -298,18 +297,25 @@ export function RecommendationsPage() {
 
 export function RegionDetailPage() {
   const { isLoggedIn } = useAuth();
+  const location = useLocation();
   const { id = "" } = useParams();
   const [region, setRegion] = useState<RegionRecommendation>();
   const [relatedPolicies, setRelatedPolicies] = useState<Policy[]>([]);
   const [evidenceOpen, setEvidenceOpen] = useState<
     "commute" | "car" | "policies" | null
   >(null);
+  const [saved, setSaved] = useState(false);
   useEffect(() => {
     let active = true;
     setRelatedPolicies([]);
-    api.getRegion(id).then(async (item) => {
+    const routeState = location.state as { recommendation?: RegionRecommendation; condition?: QuickCondition } | null;
+    const stored = localStorage.getItem("chungbuk-olgyeo-quick-condition");
+    const condition = routeState?.condition || (stored ? JSON.parse(stored) as QuickCondition : fallbackCondition);
+    api.getRegion(id, condition).then(async (item) => {
       if (!active || !item) return;
-      setRegion(item);
+      const exactRecommendation = routeState?.recommendation?.id === id ? routeState.recommendation : undefined;
+      const resolved = exactRecommendation ? { ...item, ...exactRecommendation, transportScore: item.transportScore, commuteBasis: item.commuteBasis, relatedPolicyIds: item.relatedPolicyIds } : item;
+      setRegion(resolved);
       const policies = await Promise.all(
         (item.relatedPolicyIds || []).map((policyId) =>
           api.getPolicy(policyId),
@@ -323,7 +329,11 @@ export function RegionDetailPage() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, location.state]);
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    api.getSavedRegions().then((items) => setSaved(items.some((item) => item.regionId === id))).catch(() => undefined);
+  }, [id, isLoggedIn]);
   if (!isLoggedIn) return <LoginRequired />;
   if (!region)
     return (
@@ -503,9 +513,9 @@ export function RegionDetailPage() {
         >
           이 지역에서 하루 살아보기
         </Link>
-        <button className="flex items-center gap-2 rounded-lg border border-brand px-6 text-sm font-bold text-brand">
+        <button onClick={async()=>{await api.saveRegion(region.id,region.score);setSaved(true);}} disabled={saved} className="flex items-center gap-2 rounded-lg border border-brand px-6 text-sm font-bold text-brand disabled:border-stone-300 disabled:text-stone-400">
           <Save size={15} />
-          결과 저장
+          {saved?"저장됨":"지역 저장"}
         </button>
       </div>
       {evidenceOpen && (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  Bookmark,
   CalendarDays,
   CheckCircle2,
   ExternalLink,
@@ -11,12 +12,15 @@ import {
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import type { Policy } from "../types";
+import { useAuth } from "../context/AuthContext";
 
 export function PoliciesPage() {
+  const { isLoggedIn } = useAuth();
   const [params] = useSearchParams();
   const category = params.get("category");
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   useEffect(() => {
     setLoading(true);
     api.getPolicies().then((items) => {
@@ -24,6 +28,15 @@ export function PoliciesPage() {
       setLoading(false);
     });
   }, []);
+  useEffect(() => {
+    if (!isLoggedIn) { setSavedIds(new Set()); return; }
+    api.getSavedPolicies().then((items) => setSavedIds(new Set(items.map((item) => item.policyId)))).catch(() => undefined);
+  }, [isLoggedIn]);
+  const savePolicy = async (policyId: string) => {
+    if (!isLoggedIn) { window.alert("로그인 후 정책을 저장할 수 있습니다."); return; }
+    await api.savePolicy(policyId);
+    setSavedIds((current) => new Set(current).add(policyId));
+  };
   const items = category
     ? policies.filter((policy) => policy.category.includes(category))
     : policies;
@@ -91,12 +104,10 @@ export function PoliciesPage() {
                 <CheckCircle2 size={14} className="text-brand" />
                 {policy.eligibility}
               </p>
-              <Link
-                to={`/policies/${policy.id}`}
-                className="mt-5 block rounded-lg border border-brand py-2.5 text-center text-xs font-bold text-brand"
-              >
-                자세히 보기
-              </Link>
+              <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
+                <Link to={`/policies/${policy.id}`} className="rounded-lg border border-brand py-2.5 text-center text-xs font-bold text-brand">자세히 보기</Link>
+                <button onClick={()=>void savePolicy(policy.id)} disabled={savedIds.has(policy.id)} className="flex items-center gap-1 rounded-lg bg-brand px-4 text-xs font-bold text-white disabled:bg-stone-300"><Bookmark size={14}/>{savedIds.has(policy.id)?"저장됨":"저장하기"}</button>
+              </div>
             </article>
           ))}
         </section>
@@ -106,9 +117,11 @@ export function PoliciesPage() {
 }
 
 export function PolicyDetailPage() {
+  const { isLoggedIn } = useAuth();
   const { id } = useParams();
   const [policy, setPolicy] = useState<Policy>();
   const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -117,6 +130,10 @@ export function PolicyDetailPage() {
       setLoading(false);
     });
   }, [id]);
+  useEffect(() => {
+    if (!isLoggedIn || !id) { setSaved(false); return; }
+    api.getSavedPolicies().then((items) => setSaved(items.some((item) => item.policyId === id))).catch(() => undefined);
+  }, [id, isLoggedIn]);
   if (loading)
     return (
       <main className="p-20 text-center">정책 정보를 불러오는 중입니다.</main>
@@ -178,15 +195,10 @@ export function PolicyDetailPage() {
               <li>3. 담당 기관 온라인 또는 방문 접수처로 신청합니다.</li>
             </ol>
           )}
-          <a
-            href={policy.applyUrl || policy.sourceUrl || "#"}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white"
-          >
-            공식 안내 페이지로 이동
-            <ExternalLink size={15} />
-          </a>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <a href={policy.applyUrl || policy.sourceUrl || "#"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white">공식 안내 페이지로 이동<ExternalLink size={15} /></a>
+            <button onClick={async()=>{if(!isLoggedIn){window.alert("로그인 후 정책을 저장할 수 있습니다.");return;}await api.savePolicy(policy.id);setSaved(true);}} disabled={saved} className="inline-flex items-center gap-2 rounded-lg border border-brand px-6 py-3 text-sm font-bold text-brand disabled:border-stone-300 disabled:text-stone-400"><Bookmark size={15}/>{saved?"저장됨":"정책 저장하기"}</button>
+          </div>
           {policy.caution && (
             <p className="mt-4 text-[11px] leading-5 text-stone-400">
               {policy.caution}

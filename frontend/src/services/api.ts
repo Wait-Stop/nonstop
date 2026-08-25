@@ -1,5 +1,5 @@
 import { MUNICIPALITIES, POLICIES, REGION_RECOMMENDATIONS } from "../data/mockData";
-import type { AiChatResponse, CommuteSimulation, CommunityComment, CommunityPost, CostSimulation, Policy, QuickCondition, RegionRecommendation, UserProfile } from "../types";
+import type { AiChatResponse, CommuteSimulation, CommunityComment, CommunityPost, CostSimulation, Policy, QuickCondition, RegionRecommendation, SavedPolicy, SavedRegion, UserProfile } from "../types";
 
 const delay = (ms = 550) => new Promise((resolve) => window.setTimeout(resolve, ms));
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
@@ -120,9 +120,15 @@ export const api = {
       },
     );
   },
-  async getRegion(id: string): Promise<RegionRecommendation | undefined> {
+  async getRegion(id: string, condition?: QuickCondition): Promise<RegionRecommendation | undefined> {
     return withMockFallback(
-      () => request<RegionRecommendation>(`/regions/${encodeURIComponent(id)}`),
+      async () => {
+        const detail = await request<RegionRecommendation>(`/regions/${encodeURIComponent(id)}`);
+        if (!condition) return detail;
+        const recommendations = await this.getRecommendations(condition, { persist: false });
+        const matched = recommendations.find((region) => region.id === id);
+        return matched ? { ...detail, ...matched, transportScore: detail.transportScore, commuteBasis: detail.commuteBasis, relatedPolicyIds: detail.relatedPolicyIds } : detail;
+      },
       async () => {
         await delay(250);
         const recommendation = REGION_RECOMMENDATIONS.find((region) => region.id === id);
@@ -158,6 +164,38 @@ export const api = {
         return POLICIES.find((policy) => policy.id === id || policy.id === POLICY_ID_ALIASES[id]);
       },
     );
+  },
+  async getSavedRegions(): Promise<SavedRegion[]> {
+    const items = await request<Array<{ id: string; score?: number; created_at: string; region: { code?: string; name?: string } }>>("/users/me/saved-regions");
+    return items.map((item) => ({
+      id: item.id,
+      regionId: item.region.code || "",
+      name: item.region.name || "지역명 확인 필요",
+      score: item.score,
+      createdAt: item.created_at,
+    }));
+  },
+  async saveRegion(regionId: string, score: number) {
+    return request("/users/me/saved-regions", { method: "POST", body: JSON.stringify({ regionId, score }) });
+  },
+  async deleteSavedRegion(regionId: string) {
+    return request(`/users/me/saved-regions/${encodeURIComponent(regionId)}`, { method: "DELETE" });
+  },
+  async getSavedPolicies(): Promise<SavedPolicy[]> {
+    const items = await request<Array<{ id: string; created_at: string; policy: { code?: string; title?: string; category?: string } }>>("/users/me/saved-policies");
+    return items.map((item) => ({
+      id: item.id,
+      policyId: item.policy.code || "",
+      title: item.policy.title || "정책명 확인 필요",
+      category: item.policy.category || undefined,
+      createdAt: item.created_at,
+    }));
+  },
+  async savePolicy(policyId: string) {
+    return request("/users/me/saved-policies", { method: "POST", body: JSON.stringify({ policyId }) });
+  },
+  async deleteSavedPolicy(policyId: string) {
+    return request(`/users/me/saved-policies/${encodeURIComponent(policyId)}`, { method: "DELETE" });
   },
   async calculateCost(condition: QuickCondition, regionId = DEFAULT_REGION_ID): Promise<CostSimulation> {
     return withMockFallback(

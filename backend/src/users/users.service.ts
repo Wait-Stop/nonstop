@@ -1,6 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { policies } from '../policies/policies.data';
+
+const regionNames: Record<string, string> = {
+  cheongju: '청주시 오창읍',
+  chungju: '충주시 연수동',
+  jincheon: '진천·음성 충북혁신도시',
+  okcheon: '옥천군 옥천읍',
+  goesan: '괴산군 괴산읍',
+};
 
 @Injectable()
 export class UsersService {
@@ -72,16 +81,21 @@ export class UsersService {
     });
   }
 
-  async saveRegion(userId: string, regionCode: string) {
-    const region = await this.prisma.region.findUnique({
-      where: {
-        code: regionCode,
-      },
-    });
-
-    if (!region) {
+  async saveRegion(userId: string, regionCode: string, score?: number) {
+    const regionName = regionNames[regionCode];
+    if (!regionName) {
       throw new NotFoundException('해당 지역을 찾을 수 없습니다.');
     }
+
+    const region = await this.prisma.region.upsert({
+      where: { code: regionCode },
+      update: { name: regionName },
+      create: { code: regionCode, name: regionName },
+    });
+
+    const normalizedScore = Number.isFinite(score)
+      ? Math.max(0, Math.min(100, Math.round(score as number)))
+      : undefined;
 
     return this.prisma.savedRegion.upsert({
       where: {
@@ -90,10 +104,11 @@ export class UsersService {
           region_id: region.id,
         },
       },
-      update: {},
+      update: { score: normalizedScore },
       create: {
         user_id: userId,
         region_id: region.id,
+        score: normalizedScore,
       },
       include: {
         region: true,
@@ -138,15 +153,25 @@ export class UsersService {
     };
   }
   async savePolicy(userId: string, policyCode: string) {
-    const policy = await this.prisma.policy.findUnique({
-      where: {
-        code: policyCode,
-      },
-    });
-
-    if (!policy) {
+    const policyData = policies.find((item) => item.id === policyCode);
+    if (!policyData) {
       throw new NotFoundException('해당 정책을 찾을 수 없습니다.');
     }
+
+    const policy = await this.prisma.policy.upsert({
+      where: { code: policyCode },
+      update: {
+        title: policyData.title,
+        description: policyData.summary,
+        category: policyData.category,
+      },
+      create: {
+        code: policyCode,
+        title: policyData.title,
+        description: policyData.summary,
+        category: policyData.category,
+      },
+    });
 
     return this.prisma.savedPolicy.upsert({
       where: {

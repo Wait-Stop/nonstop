@@ -74,6 +74,22 @@ export interface UserProfile extends QuickCondition {
   currentRegion: string;
 }
 
+export interface SavedRegion {
+  id: string;
+  regionId: string;
+  name: string;
+  score?: number;
+  createdAt: string;
+}
+
+export interface SavedPolicy {
+  id: string;
+  policyId: string;
+  title: string;
+  category?: string;
+  createdAt: string;
+}
+
 export interface CommunityAuthor { id: string; name: string }
 export interface CommunityComment { id: string; postId: string; content: string; author: CommunityAuthor; authorName: string; createdAt: string }
 export interface CommunityPost { id: string; category: string; title: string; excerpt: string; content?: string; author: CommunityAuthor; authorName: string; viewCount: number; commentCount: number; likeCount: number; createdAt: string; comments?: CommunityComment[] }

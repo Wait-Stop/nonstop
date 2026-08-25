@@ -49,10 +49,14 @@ export class UsersController {
 
   @Post('me/saved-regions')
   @UseGuards(JwtAuthGuard)
-  saveRegion(@Req() req: Request, @Body('regionId') regionId: string) {
+  saveRegion(
+    @Req() req: Request,
+    @Body('regionId') regionId: string,
+    @Body('score') score?: number,
+  ) {
     const user = req['user'] as { sub: string };
 
-    return this.usersService.saveRegion(user.sub, regionId);
+    return this.usersService.saveRegion(user.sub, regionId, score);
   }
 
   @Delete('me/saved-regions/:regionId')
