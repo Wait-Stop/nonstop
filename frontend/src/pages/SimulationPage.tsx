@@ -29,6 +29,12 @@ const INFO = {
   spending: { title: "지출 확인하기", icon: ReceiptText, description: "예상 소득과 지출을 비교해 저축 가능 금액을 확인합니다." },
 };
 
+const OVERALL_INFO = {
+  title: "전체 정착 시뮬레이션",
+  icon: Calculator,
+  description: "출퇴근, 생활비, 하루 일정과 예상 지출을 한 페이지에서 순서대로 확인합니다.",
+};
+
 const REGION_ID_BY_NAME: Record<string, string> = {
   청주시: "cheongju",
   충주시: "chungju",
@@ -108,7 +114,7 @@ export function SimulationHubPage() {
 
 export default function SimulationPage() {
   const { isLoggedIn, profile } = useAuth();
-  const { type = "cost" } = useParams();
+  const { type } = useParams();
   const [cost, setCost] = useState<CostSimulation>();
   const [commute, setCommute] = useState<CommuteSimulation>();
   const [aiMessage, setAiMessage] = useState("차 없이 살기 괜찮을까?");
@@ -117,7 +123,7 @@ export default function SimulationPage() {
   const [chatting, setChatting] = useState(false);
   const [chatError, setChatError] = useState("");
 
-  const info = INFO[type as keyof typeof INFO] || INFO.cost;
+  const info = type ? INFO[type as keyof typeof INFO] || OVERALL_INFO : OVERALL_INFO;
   const Icon = info.icon;
   const regionId = useMemo(() => getRegionId(profile), [profile]);
 
@@ -178,6 +184,10 @@ export default function SimulationPage() {
         </div>
       </div>
 
+      <nav className="mt-6 flex flex-wrap gap-2 rounded-xl border border-stone-200 bg-white p-3 text-xs font-bold text-stone-600">
+        {[['출퇴근', 'commute-section'], ['생활비', 'cost-section'], ['하루 일정', 'day-section'], ['AI 상담', 'ai-section']].map(([label,target])=><a key={target} href={`#${target}`} className="rounded-lg px-4 py-2 hover:bg-brand-light hover:text-brand">{label}</a>)}
+      </nav>
+
       <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-5">
         {[
           ["선택 지역", cost?.regionName || "계산 중"],
@@ -193,7 +203,7 @@ export default function SimulationPage() {
         ))}
       </div>
 
-      <section className="mt-6 grid gap-5 lg:grid-cols-[1.3fr_.7fr]">
+      <section id="day-section" className="mt-6 scroll-mt-24 grid gap-5 lg:grid-cols-[1.3fr_.7fr]">
         <div className="rounded-2xl border border-stone-200 bg-white p-7">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">나의 하루</h2>
@@ -238,7 +248,7 @@ export default function SimulationPage() {
         </div>
       </section>
 
-      <section className="mt-6 grid gap-4 md:grid-cols-3">
+      <section id="commute-section" className="mt-6 scroll-mt-24 grid gap-4 md:grid-cols-3">
         {[
           ["월 실수령액", formatMoney(cost?.income.estimatedMonthlyNetIncome)],
           ["편도 출퇴근", commute ? `${commute.estimatedOneWayMinutes}분` : "계산 중"],
@@ -251,7 +261,7 @@ export default function SimulationPage() {
         ))}
       </section>
 
-      <section className="mt-7 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
+      <section id="cost-section" className="mt-7 scroll-mt-24 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
         <div className="rounded-2xl border border-stone-200 bg-white p-7">
           <div className="flex items-end justify-between gap-3">
             <div><p className="text-xs font-bold text-brand">DAILY COST</p><h2 className="mt-1 text-xl font-bold">하루 예상 지출</h2></div>
@@ -274,7 +284,7 @@ export default function SimulationPage() {
         </div>
       </section>
 
-      <section className="mt-7 rounded-2xl border border-stone-200 bg-white p-6">
+      <section id="ai-section" className="mt-7 scroll-mt-24 rounded-2xl border border-stone-200 bg-white p-6">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-brand"><Bot size={20} /></span>
           <div>
