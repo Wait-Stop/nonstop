@@ -22,9 +22,12 @@ export function RegionsPage() {
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-9">
       <span className="text-xs font-bold text-brand">EXPLORE CHUNGBUK</span>
-      <h1 className="mt-2 text-3xl font-bold">추천 대상 지역 알아보기</h1>
+      <h1 className="mt-2 text-3xl font-bold">전체 지역 알아보기</h1>
       <p className="mt-3 text-sm text-stone-500">
-        청주·충주·진천·옥천·괴산 5개 지역의 생활환경과 정착 특징을 살펴보세요.
+        충북 지역의 생활환경과 정착 특징을 살펴보세요.
+      </p>
+      <p className="mt-1.5 text-[11px] text-stone-400">
+        현재는 청주·충주·진천·옥천·괴산 5개 지역의 정보를 제공합니다.
       </p>
       <section className="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {MUNICIPALITIES.map((region) => (

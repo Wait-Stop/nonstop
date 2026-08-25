@@ -7,7 +7,7 @@ import Logo from "./Logo";
 const NAV_ITEMS = [
   { label: "정착 시뮬레이션", items: [["전체 시뮬레이션", "/simulation"], ["출퇴근 시뮬레이션", "/simulation/commute"], ["생활비 시뮬레이션", "/simulation/budget"], ["하루 생활 시뮬레이션", "/simulation/cost"], ["지출 확인", "/simulation/spending"]] },
   { label: "정책 찾기", items: [["맞춤 정책", "/policies"], ["주거 지원", "/policies?category=주거"], ["취업·창업 지원", "/policies?category=취업"]] },
-  { label: "지역 알아보기", items: [["추천 지역", "/recommendations"], ["지원 지역 알아보기", "/regions"], ["지역 비교", "/regions/compare"]] },
+  { label: "지역 알아보기", items: [["추천 지역", "/recommendations"], ["전체 지역 알아보기", "/regions"], ["지역 비교", "/regions/compare"]] },
   { label: "커뮤니티", items: [] },
   { label: "마이페이지", items: [["내 정보", "/mypage"], ["저장한 지역·정책", "/mypage/saved"], ["회원정보 수정", "/mypage/profile"]] },
 ];
