@@ -101,10 +101,11 @@ export const api = {
     return request<{ deleted: boolean }>(`/community/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}`, { method: "DELETE" });
   },
   async updateMyProfile(profile: UserProfile) {
+    const parsedAge = Number.parseInt(profile.age, 10);
     return request<Record<string, unknown>>("/users/me", {
       method: "PATCH",
       body: JSON.stringify({
-        name: profile.name, age: Number.parseInt(profile.age, 10), gender: profile.gender,
+        name: profile.name, age: Number.isNaN(parsedAge) ? undefined : parsedAge, gender: profile.gender,
         currentRegion: profile.currentRegion, major: profile.major, job: profile.job,
         salary: profile.salary, rent: profile.rent, deposit: profile.deposit,
         transport: profile.transport, preferredRegions: profile.preferredRegions,

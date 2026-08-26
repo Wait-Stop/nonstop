@@ -10,9 +10,11 @@
     "dev:all": "node scripts/dev-all.mjs",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run start:dev",
-    "dev:ai": ".venv/bin/python -m uvicorn ai.api:app --host 127.0.0.1 --port 8001",
+    "dev:ai": "node scripts/dev-ai.mjs",
     "build": "npm --prefix frontend run build",
     "preview": "npm --prefix frontend run preview",
-    "install:frontend": "npm --prefix frontend install"
+    "install:frontend": "npm --prefix frontend install",
+    "install:backend": "npm --prefix backend install",
+    "test": "npm run build && npm --prefix backend test -- --runInBand && node scripts/test-ai.mjs"
   }
 }

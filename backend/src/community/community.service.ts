@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CommunityQueryDto } from './dto/community-query.dto';
@@ -181,7 +185,10 @@ export class CommunityService {
       select: { id: true, user_id: true },
     });
     if (!post) throw new NotFoundException('게시글을 찾을 수 없습니다.');
-    if (post.user_id !== userId) throw new ForbiddenException('본인이 작성한 게시글만 삭제할 수 있습니다.');
+    if (post.user_id !== userId)
+      throw new ForbiddenException(
+        '본인이 작성한 게시글만 삭제할 수 있습니다.',
+      );
     await this.prisma.communityPost.delete({ where: { id: postId } });
     return { deleted: true, postId };
   }
@@ -192,7 +199,8 @@ export class CommunityService {
       select: { id: true, user_id: true },
     });
     if (!comment) throw new NotFoundException('댓글을 찾을 수 없습니다.');
-    if (comment.user_id !== userId) throw new ForbiddenException('본인이 작성한 댓글만 삭제할 수 있습니다.');
+    if (comment.user_id !== userId)
+      throw new ForbiddenException('본인이 작성한 댓글만 삭제할 수 있습니다.');
     await this.prisma.communityComment.delete({ where: { id: commentId } });
     return { deleted: true, commentId };
   }
